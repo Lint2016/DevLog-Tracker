@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Welcome to DevLog Tracker</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+   <link rel="shortcut icon" href="images/learn.jpg" type="image/x-icon">
+   <!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+   <script src="https://kit.fontawesome.com/e110590ce5.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body class="auth-body">
+
+  <div class="auth-container">
+    <section class="auth-intro">
+      <h1>Welcome to <span>DevLog Tracker</span></h1>
+      <p>Track your development journey, log your progress, and stay organized across all your projects.</p>
+    </section>
+
+    <section class="auth-form-section">
+      <h2>Sign In</h2>
+      <form class="auth-form" id="loginForm">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="login-email" class="modal-form-input" placeholder="you@example.com" required />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="login-password" class="modal-form-input" placeholder="Your password" required />
+        </div>
+
+        <button type="submit" class="auth-btn" id="loginBtn">Login</button>
+
+        <div class="auth-links">
+          <a href="#" id="forgotPasswordLink">Forgot Password?</a>
+          <span>•</span>
+          <a href="#" id="createAccount">Create Account</a>
+        </div>
+      </form>
+    </section>
+  </div>
+  <!-- Sign Up Modal -->
+<div id="signupModal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn" id="closeSignupModal">&times;</span>
+    <h2>Create Account</h2>
+    <form class="signup-form" id="signupForm">
+      <div class="form-group">
+        <label for="signup-name">Full Name</label>
+        <input type="text" class="modal-form-input" id="signup-name" placeholder="Your full name" required />
+      </div>
+      <div class="form-group">
+        <label for="signup-email">Email</label>
+        <input type="email" class="modal-form-input" id="signup-email" placeholder="you@example.com" required />
+      </div>
+      <div class="form-group">
+        <label for="signup-password">Password</label>
+        <input type="password" id="signup-password" placeholder="Create a password" required />
+      </div>
+      <button type="submit" class="auth-btn" id="signupBtn">Sign Up</button>
+    </form>
+  </div>
+</div>
+
+  <!-- Forgot Password Modal -->
+  <div id="forgotPasswordModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" id="closeForgotPassword">&times;</span>
+      <h2>Reset Your Password</h2>
+      <p>Enter your email address and we'll send you a link to reset your password.</p>
+      <form id="forgotPasswordForm">
+        <div class="form-group">
+          <label for="forgot-email">Email Address</label>
+          <input type="email" id="forgot-email" placeholder="you@example.com" required />
+        </div>
+        <button type="submit" class="auth-btn" id="sendResetLink">Send Reset Link</button>
+      </form>
+      <p class="modal-footer">
+        Remember your password? <a href="#" id="backToLogin">Back to Login</a>
+      </p>
+    </div>
+  </div>
+
+  <script type="module" src="auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="shortcut icon" href="images/learn.jpg" type="image/x-icon">
+  <!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://kit.fontawesome.com/e110590ce5.js" crossorigin="anonymous"></script>
+  <title>My Logs</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <div class="container header-container">
+      <h1>DevLog Tracker</h1>
+      <nav>
+        <ul>
+          <li><a href="dashboard.html">Dashboard</a></li>
+          <li><a href="new-project.html">New Project</a></li>
+          <li><a href="my-logs.html" class="active">My Logs</a></li>
+          <li><a id="settingsLink">Settings</a></li>
+        </ul>
+      </nav>
+      <div class="theme-toggle-icon" id="themeToggle">
+        <span class="icon-sun"><i class="fa-solid fa-sun"></i></span>  
+        <span class="icon-moon"><i class="fa-solid fa-moon"></i></span> 
+      </div>
+    </div>
+  </header>
+
+  <main class="logs-container">
+    <h2>My Logs</h2>
+
+    <!-- Filters (Optional for later JS) -->
+    <div class="logs-filters">
+      <input type="text" placeholder="Search logs..." />
+      <select>
+        <option value="">All Projects</option>
+        <option value="frontend">Frontend</option>
+        <option value="backend">Backend</option>
+      </select>
+    </div>
+
+    <!-- Logs List -->
+    <section class="log-list">
+      <article class="log-entry">
+        <h3 class="log-title">Login Page Redesign</h3>
+        <p class="log-description">
+          Refactored the login form with better mobile responsiveness and integrated Firebase Auth.
+        </p>
+        <div class="log-meta">
+          <span class="log-date">May 13, 2025</span>
+          <span class="log-project">Project: AuthFlow</span>
+        </div>
+      </article>
+
+      <article class="log-entry">
+        <h3 class="log-title">Expense Summary Card</h3>
+        <p class="log-description">
+          Added monthly budget calculation and warning alert on budget overflow.
+        </p>
+        <div class="log-meta">
+          <span class="log-date">May 12, 2025</span>
+          <span class="log-project">Project: Expense Tracker</span>
+        </div>
+      </article>
+
+      <!-- Add more log entries -->
+    </section>
+  </main>
+
+  <footer class="log-footer">
+    <p>&copy; 2025 Louis Kapend</p>
+  </footer>
+   <!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal-content">
+    <span class="close-btn" id="closeSettings">&times;</span>
+    <h2>Settings</h2>
+
+    <div class="form-group">
+      <label for="username">Username</label>
+      <p class="user-info" id="displayUsername">Louis Kapend</p>
+    </div>
+
+    <div class="form-group">
+      <label for="email">Email</label>
+       <p class="user-info" id="displayEmail">kapend@example.com</p>
+    </div>
+
+    <div class="form-group">
+      <label for="transparencyRange">Card Transparency</label>
+      <input type="range" id="transparencyRange" min="0.5" max="1" step="0.05" value="0.85">
+    </div>
+
+    <div class="settings-actions">
+      <button class="signout-btn">Sign Out</button>
+      <button class="delete-btn">Delete Account</button>
+    </div>
+  </div>
+</div>
+<script src="index.js"></script>
+</body>
+</html>

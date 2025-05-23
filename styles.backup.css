@@ -1,0 +1,93 @@
+/* Modal Styles */
+#signupModal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#signupModal .modal-content {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  width: 95%;
+  max-width: 500px;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  max-height: 90vh;
+  overflow-y: auto;
+  margin: 20px;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+/* Small screens (phones) */
+@media (max-width: 480px) {
+  #signupModal .modal-content {
+    width: 100%;
+    height: auto;
+    min-height: 100%;
+    margin: 0;
+    border-radius: 0;
+    padding: 0.75rem 0.75rem 1rem 0.75rem; /* Further reduced padding */
+    display: flex;
+    flex-direction: column;
+  }
+  
+  #signupModal .signup-form {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  /* Make form inputs more touch-friendly */
+  #signupModal input[type="text"],
+  #signupModal input[type="email"],
+  #signupModal input[type="password"] {
+    height: 48px;
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+  
+  /* Increase button size for better touch */
+  #signupModal .auth-btn {
+    margin-top: 0.5rem;
+    width: 100%;
+  }
+  
+  /* Adjust close button for better reachability */
+  #signupModal .auth-links {
+    margin-top: 1rem;
+    text-align: center;
+  }
+}
+
+#signupModal .close-btn {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  line-height: 1;
+}
+
+#signupModal .close-btn:hover {
+  color: #333;
+}
+
+.signup-form input {
+  width: 100%;
+  padding: 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}

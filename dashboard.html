@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevLog Tracker - Dashboard</title>
+    <link rel="shortcut icon" href="images/learn.jpg" type="image/x-icon">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            background: url('images/devBlog.jpg') no-repeat center center fixed;
+            background-size: cover;
+            background-attachment: fixed;
+            color: #2c3e50;
+        }
+        .dashboard-header {
+            background: url('images/devBlog.jpg') no-repeat center center fixed;
+            background-size: cover;
+            background-attachment: fixed;
+            padding: 1rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            height: 60px;
+            display: flex;
+            align-items: center;
+        }
+        .dashboard-header .container {
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        .dashboard-header h1 {
+            margin: 0;
+            font-size: 2.2rem;
+            color: white;
+            font-weight: bold;
+        }
+        .dashboard-nav {
+            margin: 0;
+            padding: 0;
+            min-width: 300px;
+        }
+        .dashboard-nav ul {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 1.5rem;
+        }
+        .dashboard-nav ul {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 1rem;
+        }
+        /* Link styles */
+        .dashboard-nav a {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .dashboard-nav a.primary {
+            background: #1976d2;
+            color: white;
+        }
+        .dashboard-nav a.secondary {
+            background: #f0f0f0;
+            color: #2c3e50;
+        }
+        .dashboard-nav a:hover {
+            opacity: 0.9;
+        }
+        .dashboard-main {
+            margin-top: 6rem;
+            padding: 2rem;
+        }
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        .user-info-card, .projects-card {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .page-footer {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1rem 0;
+            text-align: center;
+            margin-top: 2rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        .page-footer .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        .page-footer p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .card-header {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        .card-header h2 {
+            margin: 0;
+            color: #1976d2;
+        }
+        .card-content {
+            padding: 1rem 0;
+        }
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .project-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            transition: transform 0.2s ease;
+        }
+        .project-card:hover {
+            transform: translateY(-5px);
+        }
+        .card-footer {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 1rem;
+        }
+        .card-footer button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.2s ease;
+        }
+        .view-logs-btn {
+            background: #1976d2;
+            color: white;
+        }
+        .edit-btn {
+            background: #4CAF50;
+            color: white;
+        }
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+        .user-info {
+            margin-bottom: 2rem;
+        }
+        .user-info h2 {
+            color: #1976d2;
+            margin-bottom: 0.5rem;
+        }
+        .projects-container {
+            margin-top: 2rem;
+        }
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .project-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            transition: transform 0.2s ease;
+        }
+        .project-card:hover {
+            transform: translateY(-5px);
+        }
+        .card-header {
+            margin-bottom: 1rem;
+        }
+        .project-title {
+            color: #1976d2;
+            margin: 0 0 0.5rem 0;
+        }
+        .card-meta {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        .card-content {
+            margin-bottom: 1rem;
+        }
+        .project-description {
+            color: #333;
+            line-height: 1.5;
+        }
+        .card-footer {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+        .card-footer button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.2s ease;
+        }
+        .view-logs-btn {
+            background: #1976d2;
+            color: white;
+        }
+        .edit-btn {
+            background: #4CAF50;
+            color: white;
+        }
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+        .dashboard-nav button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .dashboard-nav button.logout-btn {
+            background: #dc3545;
+            color: white;
+        }
+        .dashboard-nav button.logout-btn:hover {
+            background: #c82333;
+        }
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+        }
+        .logout-btn:hover{
+            cursor: pointer;
+        }
+        .main-content {
+            margin-top: 2rem;
+        }
+        .activity-item {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        footer {
+  padding: 1.5rem 0;
+  margin-top: 3rem;
+  text-align: center;
+  font-size: 1.1rem;  /* Increased from 0.9rem */
+  font-weight: 500;   /* Added medium weight */
+  color: #555;        /* Slightly darker for better visibility */
+  position: relative;
+  bottom: 0;
+  width: 100%;
+}
+
+footer p {
+  margin: 0;
+  padding: 0;
+  font-size: 2rem;
+  font-weight: bold;
+  letter-spacing: 0.3px; /* Slightly increased letter spacing for better readability */
+}
+    </style>
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="container">
+            <h1>DevLog Tracker</h1>
+            <nav class="dashboard-nav">
+                <ul>
+                    <li><a href="new-project.html" class="primary">Add New Project</a></li>
+                    <li><a href="my-logs.html" class="secondary">View Logs</a></li>
+                    <li><a href="auth.html" class="logout-btn" id="logoutBtn">Logout</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="dashboard-main">
+        <div class="dashboard-container">
+            <div class="user-info-card">
+                <div class="card-header">
+                    <h2>Welcome to DevLog Tracker</h2>
+                </div>
+                <div class="card-content">
+                    <p>You are logged in as <span id="userName"></span></p>
+                </div>
+            </div>
+
+            <div class="projects-card">
+                <div class="card-header">
+                    <h2>Your Projects</h2>
+                </div>
+                <div class="card-content">
+                    <div id="projectsGrid" class="projects-grid">
+                        <!-- Project cards will be dynamically added here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.0/dist/sweetalert2.all.min.js"></script>
+    <script src="./firebase.js"></script>
+    <script src="./dashboard.js"></script>
+    <script>
+        // Get user information
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                document.getElementById('userName').textContent = user.displayName || 'User';
+            } else {
+                window.location.href = 'auth.html';
+            }
+        });
+
+        // Handle logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                window.location.href = 'auth.html';
+            } catch (error) {
+                console.error('Error signing out:', error);
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Failed to sign out. Please try again.',
+                    icon: 'error'
+                });
+            }
+        });
+    </script>
+    <footer>
+    <div class="container">
+      <p>&copy; 2025 Louis Kapend</p>
+    </div>
+  </footer>
+</body>
+</html>
