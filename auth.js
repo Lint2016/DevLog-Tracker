@@ -1,241 +1,280 @@
-import { auth, 
-          db, 
-          createUserWithEmailAndPassword, 
-          signInWithEmailAndPassword, 
-          signOut, 
-          sendPasswordResetEmail, 
-          updateProfile, 
-          doc, 
-          setDoc } 
-          from './firebase.js';
+import { 
+    auth, 
+    createUserWithEmailAndPassword, 
+    signInWithEmailAndPassword, 
+    sendEmailVerification, 
+    sendPasswordResetEmail,
+    updateProfile,
+    setPersistence,
+    browserSessionPersistence
+} from "./firebase.js";
+import { 
+    sanitizeInput, 
+    validateEmail, 
+    validatePassword 
+} from './utils/sanitize.js';
+import { 
+    handleAuthError, 
+    showError 
+} from './utils/errorHandler.js';
+import { initSession } from './utils/session.js';
 
-// Auth Modals functionality
-document.addEventListener('DOMContentLoaded', () => {
-    // Signup Modal
-    const signUpModal = document.getElementById('signupModal');
-    const createAccount = document.getElementById('createAccount');
-    const closeSignupModal = document.getElementById('closeSignupModal');
-    const signupForm = document.getElementById('signupForm');
-    const loginForm = document.getElementById('loginForm');
-    const logoutBtn = document.getElementById('logoutBtn');
+// DOM Elements
+const signupForm = document.getElementById('signupForm');
+const loginForm = document.getElementById('loginForm');
+const forgotPasswordForm = document.getElementById('forgotPasswordForm');
 
-    // Handle Signup Form Submission
-    if (signupForm) {
-        signupForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('signup-email').value;
-            const password = document.getElementById('signup-password').value;
-            const userName = document.getElementById('signup-name').value;
+/**
+ * Handles user registration
+ */
+const handleSignup = async (e) => {
+    e.preventDefault();
+    
+    const email = document.getElementById('signup-email').value.trim();
+    const password = document.getElementById('signup-password').value;
+    const displayName = document.getElementById('signup-name').value.trim();
 
-            try {
-                // Create user in Firebase Authentication
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-
-                // Update user profile with display name
-                await updateProfile(user, {
-                    displayName: userName
-                });
-
-                // Create user document in Firestore
-                await setDoc(doc(db, 'users', user.uid), {
-                    uid: user.uid,
-                    email: email,
-                    displayName: userName,
-                    createdAt: new Date().toISOString(),
-                    lastLogin: new Date().toISOString()
-                });
-
-                console.log('User created and profile saved:', user);
-                 Swal.fire({
-      icon: "success",
-      title: "Account Created",
-      text: `Welcome, ${user.displayName}!`,
-      confirmButtonColor: "#3085d6",
-    });
-                closeSignup();
-                window.location.href = 'dashboard.html';
-            } catch (error) {
-                console.error('Error creating user:', error);
-                Swal.fire({
-                    title: 'Error!',
-                    text: error.message,
-                    icon: 'error'
-                });
-            }
+    // Validate inputs
+    const sanitizedEmail = validateEmail(email);
+    if (!sanitizedEmail) {
+        showError({
+            title: 'Invalid Email',
+            message: 'Please enter a valid email address.'
         });
+        return;
     }
 
-    // Handle Login Form Submission
-    if (loginForm) {
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            // Get form elements
-            const emailInput = document.getElementById('login-email');
-            const passwordInput = document.getElementById('login-password');
-            
-            // Check if form elements exist
-            if (!emailInput || !passwordInput) {
-                console.error('Login form elements not found');
-                Swal.fire({
-                    title: 'Error!',
-                    text: 'Login form elements not found. Please check your HTML.',
-                    icon: 'error'
-                });
-                return;
-            }
-
-            const email = emailInput.value;
-            const password = passwordInput.value;
-
-            try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-
-                // Update last login time in Firestore
-                await setDoc(doc(db, 'users', user.uid), {
-                    lastLogin: new Date().toISOString()
-                }, { merge: true });
-
-                console.log('User logged in:', user);
-                Swal.fire({
-                    title: 'Success!',
-                    text: 'Logged in successfully!',
-                    icon: 'success'
-                });
-                window.location.href = '/DevLog Tracker/dashboard.html'; // Redirect to dashboard
-            } catch (error) {
-                console.error('Error logging in:', error);
-                Swal.fire({
-                    title: 'Error!',
-                    text: error.message,
-                    icon: 'error'
-                });
-            }
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+        showError({
+            title: 'Weak Password',
+            message: passwordValidation.message
         });
+        return;
     }
 
-    // Listen for auth state changes
-    auth.onAuthStateChanged((user) => {
-        if (user) {
-            // User is signed in
-            if (logoutBtn) {
-                logoutBtn.style.display = 'block';
-            }
-        } else {
-            // User is signed out
-            if (logoutBtn) {
-                logoutBtn.style.display = 'none';
-            }
+    try {
+        // Set session persistence
+        await setPersistence(auth, browserSessionPersistence);
+        
+        // Create user account
+        const userCredential = await createUserWithEmailAndPassword(auth, sanitizedEmail, password);
+        const user = userCredential.user;
+
+        // Update user profile
+        await updateProfile(user, { 
+            displayName: sanitizeInput(displayName) 
+        });
+
+        // Send verification email
+        await sendEmailVerification(user);
+
+        // Show success message
+        await Swal.fire({
+            icon: 'success',
+            title: 'Account Created!',
+            html: `Welcome, ${sanitizeInput(displayName)}!<br><br>
+                  We've sent a verification email to ${sanitizedEmail}.<br>
+                  Please verify your email to continue.`,
+            confirmButtonColor: '#3085d6'
+        });
+
+        // Reset form
+        if (signupForm) signupForm.reset();
+        
+        // Redirect to login
+        document.getElementById('login-tab').click();
+
+    } catch (error) {
+        console.error('Signup error:', error);
+        const authError = handleAuthError(error);
+        showError(authError);
+    }
+};
+
+/**
+ * Handles user login
+ */
+const handleLogin = async (e) => {
+    e.preventDefault();
+    
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const rememberMe = document.getElementById('remember-me').checked;
+
+    try {
+        // Set persistence based on remember me
+        await setPersistence(auth, rememberMe ? 'local' : 'session');
+        
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        if (!user.emailVerified) {
+            await sendEmailVerification(user);
+            await auth.signOut();
+            throw { code: 'auth/email-not-verified' };
         }
-    });
 
-    // Handle Logout
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', async () => {
-            try {
-                await signOut(auth);
-                console.log('User logged out');
-                window.location.href = '/DevLog Tracker/index.html'; // Redirect to login page
-            } catch (error) {
-                console.error('Error logging out:', error);
-                Swal.fire({
-                    title: 'Error!',
-                    text: error.message,
-                    icon: 'error'
-                });
-            }
+        // Redirect to dashboard on successful login
+        window.location.href = 'dashboard.html';
+
+    } catch (error) {
+        console.error('Login error:', error);
+        const authError = handleAuthError(error);
+        showError(authError);
+    }
+};
+
+/**
+ * Handles password reset
+ */
+const handlePasswordReset = async (e) => {
+    e.preventDefault();
+    
+    const email = document.getElementById('forgot-email').value.trim();
+    
+    if (!validateEmail(email)) {
+        showError({
+            title: 'Invalid Email',
+            message: 'Please enter a valid email address.'
         });
+        return;
     }
 
-    // Forgot Password Modal
+    try {
+        await sendPasswordResetEmail(auth, email);
+        
+        await Swal.fire({
+            icon: 'success',
+            title: 'Password Reset Email Sent',
+            text: 'Check your email for instructions to reset your password.',
+            confirmButtonColor: '#3085d6'
+        });
+        
+        // Reset form and switch to login
+        if (forgotPasswordForm) forgotPasswordForm.reset();
+        document.getElementById('login-tab').click();
+        
+    } catch (error) {
+        console.error('Password reset error:', error);
+        const authError = handleAuthError(error);
+        showError(authError);
+    }
+};
+
+// Initialize the auth page
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize session management
+    const cleanup = initSession();
+    
+    // Add form event listeners
+    if (signupForm) {
+        signupForm.addEventListener('submit', handleSignup);
+    }
+    
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
+    
+    if (forgotPasswordForm) {
+        forgotPasswordForm.addEventListener('submit', handlePasswordReset);
+    }
+
+    // Modal elements
+    const signupModal = document.getElementById('signupModal');
     const forgotPasswordModal = document.getElementById('forgotPasswordModal');
-    const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+    const closeSignupModal = document.getElementById('closeSignupModal');
     const closeForgotPassword = document.getElementById('closeForgotPassword');
+    const createAccountLink = document.getElementById('createAccount');
+    const forgotPasswordLink = document.getElementById('forgotPasswordLink');
     const backToLogin = document.getElementById('backToLogin');
-
-    // Show Signup Modal
-    if (createAccount && signUpModal) {
-        createAccount.addEventListener('click', (e) => {
-            e.preventDefault();
-            signUpModal.style.display = 'flex';
+    
+    // Function to show modal
+    const showModal = (modal) => {
+        if (modal) {
+            modal.style.display = 'block';
             document.body.style.overflow = 'hidden';
-        });
-    }
-
-
-    // Close Signup Modal
-    function closeSignup() {
-        if (signUpModal) {
-            signUpModal.style.display = 'none';
+        }
+    };
+    
+    // Function to hide modal
+    const hideModal = (modal) => {
+        if (modal) {
+            modal.style.display = 'none';
             document.body.style.overflow = 'auto';
         }
+    };
+    
+    // Close modals when clicking the close button
+    if (closeSignupModal) {
+        closeSignupModal.addEventListener('click', () => hideModal(signupModal));
     }
-
-
-    // Show Forgot Password Modal
-    if (forgotPasswordLink && forgotPasswordModal) {
+    
+    if (closeForgotPassword) {
+        closeForgotPassword.addEventListener('click', () => hideModal(forgotPasswordModal));
+    }
+    
+    // Show modals when clicking on links
+    if (createAccountLink) {
+        createAccountLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            hideModal(forgotPasswordModal);
+            showModal(signupModal);
+        });
+    }
+    
+    if (forgotPasswordLink) {
         forgotPasswordLink.addEventListener('click', (e) => {
             e.preventDefault();
-            forgotPasswordModal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
+            hideModal(signupModal);
+            showModal(forgotPasswordModal);
         });
     }
-
-
-    // Close Forgot Password Modal
-    function closeForgotPasswordModal() {
-        if (forgotPasswordModal) {
-            forgotPasswordModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }
-    }
-
-
-    // Event Listeners for closing modals
-    if (closeSignupModal) closeSignupModal.addEventListener('click', closeSignup);
-    if (closeForgotPassword) closeForgotPassword.addEventListener('click', closeForgotPasswordModal);
-    if (backToLogin) backToLogin.addEventListener('click', closeForgotPasswordModal);
-
-
-    // Close modals when clicking outside
-    window.addEventListener('click', (e) => {
-        if (e.target === signUpModal) closeSignup();
-        if (e.target === forgotPasswordModal) closeForgotPasswordModal();
-    });
-
-
-    // Close with Escape key
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            closeSignup();
-            closeForgotPasswordModal();
-        }
-    });
-
-
-    // Handle Forgot Password Form Submission
-    const forgotPasswordForm = document.getElementById('forgotPasswordForm');
-    if (forgotPasswordForm) {
-        forgotPasswordForm.addEventListener('submit', (e) => {
+    
+    if (backToLogin) {
+        backToLogin.addEventListener('click', (e) => {
             e.preventDefault();
-            const email = document.getElementById('forgot-email').value;
-            
-            // Here you would typically send a reset password email
-            console.log('Sending reset password email to:', email);
-            
-            // Show success message (in a real app, you would handle the response from your server)
-            alert('If an account exists with this email, you will receive a password reset link.');
-            Swal.fire({
-  title: 'Success!',
-  text: 'Reset password link sent.',
-  icon: 'success',
-  confirmButtonText: 'OK'
-});
-            
-            // Close the modal
-            closeForgotPasswordModal();
+            hideModal(forgotPasswordModal);
         });
     }
+    
+    // Close modal when clicking outside the modal content
+    window.addEventListener('click', (e) => {
+        if (e.target === signupModal) {
+            hideModal(signupModal);
+        } else if (e.target === forgotPasswordModal) {
+            hideModal(forgotPasswordModal);
+        }
+    });
+    
+    // Tab switching (for forms within modals)
+    const tabLinks = document.querySelectorAll('.tab-link');
+    tabLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const target = e.target.getAttribute('data-tab');
+            
+            // Update active tab
+            document.querySelectorAll('.tab-link').forEach(tab => tab.classList.remove('active'));
+            e.target.classList.add('active');
+            
+            // Show target tab content
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.style.display = 'none';
+            });
+            if (target) {
+                const targetPane = document.getElementById(target);
+                if (targetPane) {
+                    targetPane.style.display = 'block';
+                }
+            }
+        });
+    });
+    
+    // Cleanup on unmount
+    return () => {
+        if (cleanup && typeof cleanup === 'function') {
+            cleanup();
+        }
+    };
 });
