@@ -111,5 +111,144 @@
   </div>
 </div>
 <script src="index.js"></script>
+<!-- Add this just before the closing </body> tag -->
+<script type="module">
+  import { 
+    auth, 
+    db, 
+    collection, 
+    addDoc, 
+    serverTimestamp,
+    onAuthStateChanged
+  } from './firebase.js';
+
+  // Initialize the form
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('newProjectForm');
+    const addFeatureBtn = document.getElementById('addFeatureBtn');
+    const featureInput = document.getElementById('featureInput');
+    const featureList = document.getElementById('featureList');
+    let features = [];
+
+    // Add feature to the list
+    const addFeature = () => {
+      const featureText = featureInput.value.trim();
+      if (featureText) {
+        features.push(featureText);
+        updateFeatureList();
+        featureInput.value = '';
+      }
+    };
+
+    // Update the feature list display
+    const updateFeatureList = () => {
+      featureList.innerHTML = features.map((feature, index) => `
+        <li>
+          ${feature}
+          <button type="button" class="remove-feature" data-index="${index}">&times;</button>
+        </li>
+      `).join('');
+
+      // Add event listeners to remove buttons
+      document.querySelectorAll('.remove-feature').forEach(button => {
+        button.addEventListener('click', (e) => {
+          const index = e.target.dataset.index;
+          features.splice(index, 1);
+          updateFeatureList();
+        });
+      });
+    };
+
+    // Add feature when button is clicked
+    if (addFeatureBtn && featureInput) {
+      addFeatureBtn.addEventListener('click', addFeature);
+      
+      // Also add feature when Enter is pressed in the input
+      featureInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          addFeature();
+        }
+      });
+    }
+
+    // Handle form submission
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const user = auth.currentUser;
+        if (!user) {
+          console.error('User not authenticated');
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'You must be logged in to create a project'
+          });
+          return;
+        }
+
+        const submitButton = form.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
+        
+        try {
+          // Show loading state
+          submitButton.disabled = true;
+          submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+          const projectData = {
+            title: form.title.value.trim(),
+            description: form.description.value.trim(),
+            tags: form.tags.value.split(',').map(tag => tag.trim()).filter(Boolean),
+            status: form.status.value,
+            challenges: form.challenges.value.trim(),
+            features: features,
+            notes: form.notes.value.trim(),
+            userId: user.uid,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          };
+
+          console.log('Saving project:', projectData);
+          
+          // Add project to Firestore
+          const docRef = await addDoc(collection(db, 'projects'), projectData);
+          console.log('Project saved with ID:', docRef.id);
+
+          // Show success message
+          await Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Project created successfully',
+            timer: 2000,
+            showConfirmButton: false
+          });
+
+          // Redirect to dashboard
+          window.location.href = 'dashboard.html';
+          
+        } catch (error) {
+          console.error('Error saving project:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to save project. Please try again.'
+          });
+        } finally {
+          // Reset button state
+          submitButton.disabled = false;
+          submitButton.innerHTML = originalButtonText;
+        }
+      });
+    }
+
+    // Check auth state
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = 'auth.html';
+      }
+    });
+  });
+</script>
 </body>
 </html>

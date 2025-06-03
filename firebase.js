@@ -10,7 +10,12 @@ import {
     onAuthStateChanged,
     sendEmailVerification,
     setPersistence,
-    browserSessionPersistence
+    browserSessionPersistence,
+    browserLocalPersistence,
+    EmailAuthProvider,
+    reauthenticateWithCredential,
+    updatePassword,
+    deleteUser
 } from 'https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js';
 import { 
     getFirestore, 
@@ -22,7 +27,11 @@ import {
     where, 
     getDocs,
     deleteDoc,
-    onSnapshot
+    onSnapshot,
+    addDoc,
+    updateDoc,
+    serverTimestamp,
+    Timestamp
 } from 'https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js';
 
 // Firebase configuration
@@ -58,18 +67,23 @@ try {
     alert('Failed to initialize the application. Please check your internet connection and try again.');
 }
 
-export { 
-    auth, 
-    db, 
-    createUserWithEmailAndPassword, 
-    signInWithEmailAndPassword, 
-    signOut, 
+export {
+    auth,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    signOut,
     sendPasswordResetEmail,
-    sendEmailVerification,
     updateProfile,
     onAuthStateChanged,
+    sendEmailVerification,
     setPersistence,
     browserSessionPersistence,
+    browserLocalPersistence,
+    EmailAuthProvider,
+    reauthenticateWithCredential,
+    updatePassword,
+    deleteUser,
+    db,
     doc,
     setDoc,
     getDoc,
@@ -78,5 +92,9 @@ export {
     where,
     getDocs,
     deleteDoc,
-    onSnapshot
+    onSnapshot,
+    addDoc,
+    updateDoc,
+    serverTimestamp,
+    Timestamp
 };

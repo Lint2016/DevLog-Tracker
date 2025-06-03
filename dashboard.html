@@ -132,128 +132,140 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 1.5rem;
-            margin-bottom: 3rem;
+            margin-top: 1.5rem;
         }
 
         .project-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
             overflow: hidden;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            color: var(--secondary);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .project-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
         }
 
-        .card-header {
-            padding: 1.5rem;
-            background: var(--primary);
-            color: white;
+        .project-card-header {
+            padding: 1.25rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
         }
 
-        .card-header h3 {
-            font-size: 1.4rem;
-            margin-bottom: 0.5rem;
+        .project-title {
+            font-size: 1.25rem;
+            margin: 0 0 0.5rem 0;
+            color: var(--primary);
+            word-break: break-word;
         }
 
-        .card-header .meta {
+        .project-category {
+            display: inline-block;
+            background: rgba(52, 152, 219, 0.2);
+            color: var(--primary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .project-card-body {
+            padding: 1.25rem;
+        }
+
+        .project-description {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .project-meta {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             margin-top: 1rem;
-            font-size: 0.9rem;
-            opacity: 0.9;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
         }
 
-        .card-content {
-            padding: 1.5rem;
-            flex: 1;
-        }
-
-        .card-content p {
-            color: #555;
-            line-height: 1.6;
-            margin-bottom: 1.5rem;
-        }
-
-        .tech-tag {
-            background: rgba(52, 152, 219, 0.1);
-            color: var(--primary);
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            display: inline-block;
-            margin: 0.2rem;
-        }
-
-        .card-footer {
-            padding: 1rem 1.5rem;
-            background: var(--light);
-            border-top: 1px solid #eee;
+        .project-actions {
             display: flex;
             gap: 0.5rem;
         }
 
-        .btn {
-            padding: 0.6rem 1rem;
-            border-radius: 6px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        .btn-edit, .btn-delete {
+            padding: 0.5rem 1rem;
             border: none;
-            font-size: 0.9rem;
-            display: inline-flex;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
             align-items: center;
-            gap: 6px;
-            flex: 1;
-            justify-content: center;
+            gap: 0.5rem;
         }
 
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #2980b9;
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 1px solid var(--primary);
+        .btn-edit {
+            background: rgba(52, 152, 219, 0.2);
             color: var(--primary);
         }
 
-        .btn-outline:hover {
-            background: var(--primary);
+        .btn-edit:hover {
+            background: rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-delete {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+        }
+
+        .btn-delete:hover {
+            background: rgba(231, 76, 60, 0.3);
+        }
+
+        .project-date {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Edit Mode */
+        .project-card.edit-mode .project-title,
+        .project-card.edit-mode .project-description {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
             color: white;
         }
 
-        .btn-warning {
-            background: #e74c3c;
-            color: white;
+        .project-card.edit-mode .project-title {
+            font-size: 1.25rem;
+            font-weight: 600;
         }
 
-        .btn-warning:hover {
-            background: #c0392b;
+        .project-card.edit-mode .project-category {
+            background: transparent;
+            padding: 0.25rem 0;
+            margin-bottom: 0.5rem;
         }
 
-        footer {
-            text-align: center;
-            padding: 1.5rem;
-            background: rgba(0, 0, 0, 0.85);
-            color: rgba(255, 255, 255, 0.7);
-            margin-top: auto;
+        .project-card.edit-mode .project-actions {
+            justify-content: flex-end;
         }
 
-        footer p {
-            margin: 0;
-            font-size: 1.1rem;
+        /* Responsive */
+        @media (max-width: 768px) {
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         /* Responsive Styles */
@@ -307,88 +319,97 @@
         }
 
         /* Modal Styles */
-        .modal {
+        #editProjectModal {
             display: none;
             position: fixed;
-            z-index: 1000;
-            left: 0;
             top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(3px);
-            overflow-y: auto; /* Enable scrolling for the entire modal */
-            padding: 2rem 0; /* Add padding to top and bottom */
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px 0;
         }
 
         .modal-content {
-            background-color: #1e293b;
+            background: #1e293b;
             margin: 2% auto;
-            padding: 2rem;
+            padding: 25px;
             border-radius: 12px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 90vh; /* Limit height to viewport */
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            color: #f8fafc;
+            max-width: 90%;
+            width: 600px;
             position: relative;
-            animation: modalSlideIn 0.3s ease-out;
+            max-height: 90vh;
             display: flex;
             flex-direction: column;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            color: #f8fafc;
+        }
+
+        .modal-header {
+            padding: 0 0 15px 0;
+            margin: 0 0 20px 0;
+            border-bottom: 1px solid #334155;
+            position: sticky;
+            top: 0;
+            background: #1e293b;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #f8fafc;
+            font-size: 1.5em;
+        }
+
+        .close-btn {
+            font-size: 1.8em;
+            cursor: pointer;
+            color: #94a3b8;
+            transition: color 0.2s;
+            background: none;
+            border: none;
+            padding: 0 8px;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            color: #f8fafc;
         }
 
         .modal-body {
-            overflow-y: auto; /* Enable scrolling for the form */
-            padding-right: 0.5rem; /* Prevent content from being hidden behind scrollbar */
-            flex: 1; /* Take remaining space */
+            overflow-y: auto;
+            max-height: calc(90vh - 180px);
+            padding: 0 5px 10px 0;
+            margin-right: -5px;
         }
 
-        /* Custom scrollbar for modal body */
-        .modal-body::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .modal-body::-webkit-scrollbar-track {
-            background: #1e293b;
-            border-radius: 3px;
-        }
-
-        .modal-body::-webkit-scrollbar-thumb {
-            background: #4b5563;
-            border-radius: 3px;
-        }
-
-        .modal-body::-webkit-scrollbar-thumb:hover {
-            background: #6b7280;
-        }
-
-        /* Form Styles */
         .form-group {
-            margin-bottom: 1.5rem;
-            max-width: 400px; /* Limit form width */
-            margin-left: auto;
-            margin-right: auto;
-            width: 100%;
+            margin-bottom: 20px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
+            margin-bottom: 8px;
             color: #cbd5e1;
             font-weight: 500;
         }
 
         .form-group input[type="text"],
-        .form-group input[type="email"],
+        .form-group select,
         .form-group textarea {
             width: 100%;
-            padding: 0.75rem 1rem;
+            padding: 10px 12px;
             border: 1px solid #334155;
             border-radius: 6px;
             background-color: #1e293b;
             color: #f8fafc;
-            font-size: 1rem;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            font-size: 1em;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
 
         .form-group textarea {
@@ -397,71 +418,147 @@
         }
 
         .form-group input:focus,
+        .form-group select:focus,
         .form-group textarea:focus {
             outline: none;
             border-color: #60a5fa;
             box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
         }
 
-        /* Disabled input styling */
-        .form-group input:disabled {
-            background-color: #1e293b;
-            color: #94a3b8;
-            cursor: not-allowed;
-        }
-
-        /* Input with icon */
-        .input-with-icon {
-            display: flex;
-            align-items: center;
-            background-color: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 6px;
-            overflow: hidden;
-        }
-
-        .input-icon {
-            padding: 0 0.75rem;
-            background-color: #334155;
-            color: #cbd5e1;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            font-size: 0.9rem;
-        }
-
-        .input-with-icon input {
-            flex: 1;
-            border: none !important;
-            background: transparent !important;
-            padding-left: 0.5rem !important;
-        }
-
-        /* Form actions */
         .form-actions {
             display: flex;
             justify-content: flex-end;
-            gap: 1rem;
-            margin-top: 2rem;
-            padding-top: 1rem;
+            gap: 12px;
+            margin-top: 20px;
+            padding-top: 20px;
             border-top: 1px solid #334155;
+            position: sticky;
+            bottom: 0;
+            background: #1e293b;
+            z-index: 10;
+            margin: 20px -25px -25px -25px;
+            padding: 20px 25px;
         }
 
-        /* Responsive adjustments */
-        @media (max-width: 640px) {
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95em;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn i {
+            font-size: 0.9em;
+        }
+
+        .btn-primary {
+            background: #4a6cf7;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #3a5bd9;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #334155;
+            color: #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+            color: #f8fafc;
+        }
+
+        .btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Scrollbar Styles */
+        .modal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .modal-body::-webkit-scrollbar-track {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+
+        .modal-body::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 4px;
+        }
+
+        .modal-body::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+
+        @media (max-width: 768px) {
             .modal-content {
-                margin: 20% auto;
                 width: 95%;
-                padding: 1.5rem;
+                padding: 20px;
             }
             
             .form-actions {
                 flex-direction: column;
+                gap: 10px;
             }
             
-            .form-actions button {
+            .btn {
                 width: 100%;
             }
+        }
+    </style>
+    <style>
+        /* Add this to your existing styles */
+        /* New Project Button Styles */
+        .btn-new-project {
+            background: linear-gradient(135deg, #4CAF50, #45a049) !important;
+            color: white !important;
+            border: none !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease !important;
+            font-weight: 600 !important;
+            padding: 0.5rem 1.25rem !important;
+        }
+        
+        .btn-new-project:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #45a049, #3d8b40) !important;
+        }
+        
+        .btn-new-project i {
+            margin-right: 6px;
+        }
+
+        /* No Projects Styles */
+        .no-projects {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #9ca3af;
+        }
+        
+        .no-projects i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #4b5563;
+        }
+        
+        .no-projects p {
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
         }
     </style>
 </head>
@@ -471,7 +568,8 @@
         <nav class="dashboard-nav">
             <ul>
                 <li><a href="my-logs.html" class="nav-link" data-page="my-logs"><i class="fas fa-book"></i> My Logs</a></li>
-                <li><a href="#" class="nav-link" data-page="profile"><i class="fas fa-user"></i> <span id="userNavName">Profile</span></a></li>
+                <li><a href="" class="nav-link" data-page="profile"><i class="fas fa-user"></i> <span id="userNavName">Profile</span></a></li>
+                <li><a href="new-project.html" id="newProjectBtn" class="nav-link btn-new-project"><i class="fas fa-plus"></i> New Project</a></li>
                 <li><a href="#" id="signOutBtn" class="nav-link"><i class="fas fa-sign-out-alt"></i> Sign Out</a></li>
             </ul>
         </nav>
@@ -501,59 +599,288 @@
             </div>
         </section>
 
-        <section>
+        <section class="projects-section">
             <div class="section-header">
                 <h2 class="section-title">My Projects</h2>
-                <button id="newProjectBtn" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> New Project
-                </button>
             </div>
             <div id="projectsGrid" class="projects-grid">
-                <!-- Projects will be loaded here -->
+                <!-- Project cards will be dynamically inserted here -->
+                <div class="no-projects">
+                    <i class="fas fa-folder-open"></i>
+                    <p>No projects found.</p>
+                </div>
             </div>
         </section>
     </main>
 
-    <!-- Profile Modal -->
-    <div id="profileModal" class="modal">
+    <!-- Profile Settings Modal -->
+    <div id="profileModal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Edit Profile</h2>
-                <span class="close-btn" id="closeProfileModal">&times;</span>
+                <h3><i class="fas fa-user-cog"></i> Profile Settings</h3>
+                <button class="close-modal" id="closeProfileModal">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="profileForm">
-                    <div class="form-group">
-                        <label for="displayName">Display Name</label>
-                        <input type="text" id="displayName" name="displayName" placeholder="Enter your name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" name="email" disabled>
-                    </div>
-                    <div class="form-group">
-                        <label for="bio">Bio</label>
-                        <textarea id="bio" name="bio" rows="3" placeholder="Tell us about yourself"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="github">GitHub Username</label>
-                        <div class="input-with-icon">
-                            <span class="input-icon">github.com/</span>
-                            <input type="text" id="github" name="github" placeholder="username">
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" id="cancelProfileBtn" class="btn btn-outline">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                    </div>
-                </form>
+                <div class="form-group">
+                    <label for="editDisplayName">Display Name</label>
+                    <input type="text" id="editDisplayName" class="modal-form-input" placeholder="Enter your name">
+                </div>
+                <div class="form-group">
+                    <label for="editEmail">Email</label>
+                    <input type="email" id="editEmail" class="modal-form-input" disabled>
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="saveProfileBtn" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                    <button type="button" id="changePasswordBtn" class="btn btn-secondary">
+                        <i class="fas fa-key"></i> Change Password
+                    </button>
+                    <button type="button" id="deleteAccountBtn" class="btn btn-danger">
+                        <i class="fas fa-trash-alt"></i> Delete Account
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
-    <footer>
-        <p>&copy; 2025 Lint - DevLog Tracker</p>
-    </footer>
+    <!-- Change Password Modal -->
+    <div id="changePasswordModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-key"></i> Change Password</h3>
+                <button class="close-modal" id="closePasswordModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="currentPassword">Current Password</label>
+                    <input type="password" id="currentPassword" class="modal-form-input" placeholder="Enter current password">
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">New Password</label>
+                    <input type="password" id="newPassword" class="modal-form-input" placeholder="Enter new password">
+                </div>
+                <div class="form-group">
+                    <label for="confirmNewPassword">Confirm New Password</label>
+                    <input type="password" id="confirmNewPassword" class="modal-form-input" placeholder="Confirm new password">
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="updatePasswordBtn" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Update Password
+                    </button>
+                    <button type="button" id="cancelPasswordBtn" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Project Modal -->
+    <div id="editProjectModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Project</h3>
+                <span class="close-btn" id="closeEditModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="editProjectForm" class="modal-form">
+                    <input type="hidden" id="editProjectId">
+                    
+                    <div class="form-group">
+                        <label for="editTitle">Project Title *</label>
+                        <input type="text" id="editTitle" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editDescription">Description</label>
+                        <textarea id="editDescription" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editStatus">Status</label>
+                        <select id="editStatus">
+                            <option value="Planning">Planning</option>
+                            <option value="In Progress" selected>In Progress</option>
+                            <option value="On Hold">On Hold</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Archived">Archived</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editTags">Tags (comma separated)</label>
+                        <input type="text" id="editTags" placeholder="e.g., web, mobile, api">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editFeatures">Features (one per line)</label>
+                        <textarea id="editFeatures" rows="4" placeholder="Enter each feature on a new line"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editChallenges">Challenges & Solutions</label>
+                        <textarea id="editChallenges" rows="4" placeholder="Describe any challenges you faced and how you solved them"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editNotes">Notes</label>
+                        <textarea id="editNotes" rows="3" placeholder="Any additional notes about the project"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="form-actions">
+                <button type="button" id="cancelEdit" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="submit" form="editProjectForm" id="saveChanges" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Modal functionality
+        const editProjectModal = document.getElementById('editProjectModal');
+        const closeEditModal = document.getElementById('closeEditModal');
+        const cancelEditBtn = document.getElementById('cancelEdit');
+        const editProjectForm = document.getElementById('editProjectForm');
+        const saveChangesBtn = document.getElementById('saveChanges');
+
+        // Open modal function
+        function openEditModal(projectData) {
+            // Populate form with project data
+            document.getElementById('editProjectId').value = projectData.id;
+            document.getElementById('editTitle').value = projectData.title || '';
+            document.getElementById('editDescription').value = projectData.description || '';
+            document.getElementById('editStatus').value = projectData.status || 'In Progress';
+            document.getElementById('editTags').value = Array.isArray(projectData.tags) 
+                ? projectData.tags.join(', ') 
+                : (projectData.tags || '');
+            document.getElementById('editFeatures').value = Array.isArray(projectData.features) 
+                ? projectData.features.join('\n') 
+                : (projectData.features || '');
+            document.getElementById('editChallenges').value = projectData.challenges || '';
+            document.getElementById('editNotes').value = projectData.notes || '';
+            
+            // Show modal
+            editProjectModal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close modal function
+        function closeEditModalFunc() {
+            editProjectModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            editProjectForm.reset();
+        }
+
+        // Close modal when clicking on X or cancel button
+        if (closeEditModal) closeEditModal.addEventListener('click', closeEditModalFunc);
+        if (cancelEditBtn) cancelEditBtn.addEventListener('click', closeEditModalFunc);
+
+        // Close modal when clicking outside the modal content
+        window.addEventListener('click', (e) => {
+            if (e.target === editProjectModal) {
+                closeEditModalFunc();
+            }
+        });
+
+        // Handle form submission
+        if (editProjectForm) {
+            editProjectForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const projectId = document.getElementById('editProjectId').value;
+                const projectTitle = document.getElementById('editTitle').value.trim();
+                
+                if (!projectTitle) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Project title is required',
+                        confirmButtonColor: '#4a6cf7'
+                    });
+                    return;
+                }
+                
+                // Show loading state
+                saveChangesBtn.classList.add('loading');
+                
+                try {
+                    const projectData = {
+                        title: projectTitle,
+                        description: document.getElementById('editDescription').value.trim(),
+                        status: document.getElementById('editStatus').value,
+                        tags: document.getElementById('editTags').value
+                            .split(',')
+                            .map(tag => tag.trim())
+                            .filter(tag => tag.length > 0),
+                        features: document.getElementById('editFeatures').value
+                            .split('\n')
+                            .map(feature => feature.trim())
+                            .filter(feature => feature.length > 0),
+                        challenges: document.getElementById('editChallenges').value.trim(),
+                        notes: document.getElementById('editNotes').value.trim(),
+                        updatedAt: new Date()
+                    };
+                    
+                    // Update project in Firestore
+                    const projectRef = doc(db, 'projects', projectId);
+                    await updateDoc(projectRef, projectData);
+                    
+                    // Close modal and show success message
+                    closeEditModalFunc();
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: 'Project updated successfully',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    
+                } catch (error) {
+                    console.error('Error updating project:', error);
+                    
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to update project. Please try again.',
+                        confirmButtonColor: '#4a6cf7'
+                    });
+                    
+                } finally {
+                    // Reset button state
+                    saveChangesBtn.classList.remove('loading');
+                }
+            });
+        }
+    </script>
+
+    <script>
+        // In your setupProjectCardListeners function, update the edit button click handler:
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const card = e.currentTarget.closest('.project-card');
+                const projectId = card.dataset.id;
+                
+                // Get the project data from the card
+                const projectData = {
+                    id: projectId,
+                    title: card.querySelector('.project-title').textContent,
+                    description: card.querySelector('.project-description')?.textContent || '',
+                    status: card.querySelector('.project-status')?.textContent || 'In Progress',
+                    // Add other fields as needed
+                };
+                
+                // Open the edit modal with project data
+                openEditModal(projectData);
+            });
+        });
+    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script type="module" src="firebase.js"></script>

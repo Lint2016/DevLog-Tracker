@@ -6,7 +6,8 @@ import {
     sendPasswordResetEmail,
     updateProfile,
     setPersistence,
-    browserSessionPersistence
+    browserSessionPersistence,
+    browserLocalPersistence
 } from "./firebase.js";
 import { 
     sanitizeInput, 
@@ -60,20 +61,47 @@ const handleSignup = async (e) => {
         // Create user account
         const userCredential = await createUserWithEmailAndPassword(auth, sanitizedEmail, password);
         const user = userCredential.user;
+        console.log('User created:', user.uid);
 
-        // Update user profile
+        // Update user profile with display name
+        const sanitizedDisplayName = sanitizeInput(displayName);
+        console.log('Updating profile with display name:', sanitizedDisplayName);
+        
         await updateProfile(user, { 
-            displayName: sanitizeInput(displayName) 
+            displayName: sanitizedDisplayName
+        });
+        
+        console.log('Profile updated, reloading user...');
+        
+        // Force refresh the user object to get the latest data
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Small delay to ensure update propagates
+        await user.reload();
+        const currentUser = auth.currentUser;
+        
+        console.log('Reloaded user:', {
+            uid: currentUser.uid,
+            email: currentUser.email,
+            displayName: currentUser.displayName,
+            emailVerified: currentUser.emailVerified
         });
 
+        // Store user data in localStorage
+        const userData = {
+            uid: currentUser.uid,
+            email: currentUser.email,
+            displayName: currentUser.displayName || sanitizedDisplayName,
+            emailVerified: currentUser.emailVerified
+        };
+        localStorage.setItem('user', JSON.stringify(userData));
+
         // Send verification email
-        await sendEmailVerification(user);
+        await sendEmailVerification(currentUser);
 
         // Show success message
         await Swal.fire({
             icon: 'success',
             title: 'Account Created!',
-            html: `Welcome, ${sanitizeInput(displayName)}!<br><br>
+            html: `Welcome, ${sanitizedDisplayName}!<br><br>
                   We've sent a verification email to ${sanitizedEmail}.<br>
                   Please verify your email to continue.`,
             confirmButtonColor: '#3085d6'
@@ -82,8 +110,8 @@ const handleSignup = async (e) => {
         // Reset form
         if (signupForm) signupForm.reset();
         
-        // Redirect to login
-        document.getElementById('login-tab').click();
+        // Redirect to dashboard
+        window.location.href = 'dashboard.html';
 
     } catch (error) {
         console.error('Signup error:', error);
@@ -100,11 +128,11 @@ const handleLogin = async (e) => {
     
     const email = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
-    const rememberMe = document.getElementById('remember-me').checked;
+    const rememberMe = document.getElementById('remember-me')?.checked || false;
 
     try {
         // Set persistence based on remember me
-        await setPersistence(auth, rememberMe ? 'local' : 'session');
+        await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
         
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;

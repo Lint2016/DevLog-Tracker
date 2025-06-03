@@ -1213,3 +1213,209 @@ button[type="button"].secondary:hover {
   border-radius: 6px;
   border: 1px solid #ccc;
 }
+/* Project Card Styles */
+.project-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.project-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.project-card-header {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.project-title-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.project-title {
+    font-size: 1.5rem;
+    margin: 0;
+    color: #fff;
+}
+
+.project-status {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.status-ongoing {
+    background: rgba(52, 152, 219, 0.2);
+    color: #3498db;
+}
+
+.status-completed {
+    background: rgba(46, 204, 113, 0.2);
+    color: #2ecc71;
+}
+
+.status-paused {
+    background: rgba(241, 196, 15, 0.2);
+    color: #f1c40f;
+}
+
+.project-meta {
+    font-size: 0.85rem;
+    color: #9ca3af;
+    display: flex;
+    gap: 1rem;
+}
+
+.project-section {
+    margin-bottom: 1.5rem;
+}
+
+.project-section h4 {
+    color: #e5e7eb;
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.project-section h4 i {
+    color: #9ca3af;
+}
+
+.project-description,
+.project-challenges,
+.project-notes {
+    color: #d1d5db;
+    line-height: 1.6;
+    margin: 0.5rem 0;
+    white-space: pre-line;
+}
+
+.features-list {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 1rem 0;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 5px;
+    margin-bottom: 0.5rem;
+}
+
+.feature-text {
+    flex: 1;
+    color: #d1d5db;
+}
+
+.btn-remove-feature {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.btn-remove-feature:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.add-feature-wrapper {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.add-feature-input {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.2);
+    color: #fff;
+    border-radius: 4px;
+}
+
+.btn-add-feature {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-add-feature:hover {
+    background: #2980b9;
+}
+
+.project-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.tag {
+    background: rgba(79, 70, 229, 0.2);
+    color: #818cf8;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+}
+
+.project-card-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 1rem;
+}
+
+/* Edit Mode Styles */
+.project-card.edit-mode [contenteditable="false"] {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    padding: 0.5rem;
+    min-height: 1.5rem;
+}
+
+.project-card.edit-mode .project-challenges,
+.project-card.edit-mode .project-notes {
+    min-height: 100px;
+    white-space: pre-wrap;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .project-card {
+        padding: 1rem;
+    }
+    
+    .project-title {
+        font-size: 1.25rem;
+    }
+    
+    .project-card-footer {
+        flex-wrap: wrap;
+    }
+}

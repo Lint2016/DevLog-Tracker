@@ -4,20 +4,30 @@ import { auth, onAuthStateChanged } from '../firebase.js';
  * Manages user session state
  */
 export const initSession = () => {
-    // Check for existing session
-    const user = JSON.parse(localStorage.getItem('user')) || null;
-    
     // Set up auth state change listener
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
         if (user) {
+            // Force refresh the user data to get the latest profile
+            await user.reload();
+            const currentUser = auth.currentUser;
+            
             // User is signed in
             const userData = {
-                uid: user.uid,
-                email: user.email,
-                displayName: user.displayName,
-                emailVerified: user.emailVerified
+                uid: currentUser.uid,
+                email: currentUser.email,
+                displayName: currentUser.displayName || currentUser.email?.split('@')[0] || 'User',
+                emailVerified: currentUser.emailVerified
             };
+            
             localStorage.setItem('user', JSON.stringify(userData));
+            
+            // Update the DOM if we're on the dashboard
+            if (window.location.pathname.includes('dashboard.html')) {
+                const userNameElement = document.getElementById('userName');
+                if (userNameElement) {
+                    userNameElement.textContent = userData.displayName;
+                }
+            }
             
             // Redirect to dashboard if on auth page
             if (window.location.pathname.includes('auth.html')) {
