@@ -30,6 +30,7 @@ import {
     onSnapshot,
     addDoc,
     updateDoc,
+    orderBy,
     serverTimestamp,
     Timestamp
 } from 'https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js';
@@ -94,6 +95,7 @@ export {
     deleteDoc,
     onSnapshot,
     addDoc,
+    orderBy,
     updateDoc,
     serverTimestamp,
     Timestamp

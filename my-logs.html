@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Logs - DevLog Tracker</title>
+    <title>My Projects - DevLog Tracker</title>
+    <link rel="shortcut icon" href="images/learn.jpg" type="image/x-icon">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
@@ -17,6 +18,7 @@
             </div>
             <div class="flex items-center space-x-4">
                 <a href="dashboard.html" class="text-white hover:bg-gray-800 px-3 py-2 rounded transition-colors">Dashboard</a>
+                <a href="my-logs.html" class="text-white bg-gray-700 px-3 py-2 rounded transition-colors">My Projects</a>
                 <div class="relative group">
                     
                     <div id="userDropdown" class="hidden absolute right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg py-1 z-50">
@@ -32,27 +34,16 @@
         </nav>
     </header>
 
-    <main class="container mx-auto px-4 py-8">
+    <main class="container mx-auto px-4 py-8 pt-24">
         <div class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-800">My Logs</h1>
-            <button id="newLogBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center">
-                <i class="fas fa-plus mr-2"></i> New Log
-            </button>
+            <h1 class="text-3xl font-bold text-gray-800">My Projects</h1>
         </div>
 
-        <!-- Logs Filter/Search -->
+        <!-- Projects Filter -->
         <div class="bg-white rounded-lg shadow-md p-4 mb-8">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-                <div class="relative flex-1 max-w-md">
-                    <input type="text" id="searchLogs" placeholder="Search logs..." 
-                           class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
-                </div>
+            <div class="flex flex-col md:flex-row md:items-center md:justify-end space-y-4 md:space-y-0">
                 <div class="flex space-x-2">
-                    <select id="filterProject" class="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                        <option value="">All Projects</option>
-                        <!-- Dynamically populated -->
-                    </select>
+                    <label for="filterDate" class="sr-only">Filter by date</label>
                     <select id="filterDate" class="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                         <option value="all">All Time</option>
                         <option value="today">Today</option>
@@ -63,53 +54,19 @@
             </div>
         </div>
 
-        <!-- Logs Container -->
-        <div id="logsContainer" class="space-y-6">
-            <!-- Logs will be dynamically inserted here -->
-            <div class="text-center py-12 text-gray-500">
-                <i class="fas fa-clipboard-list text-4xl mb-4"></i>
-                <p class="text-lg">No logs found. Create your first log to get started!</p>
+        <!-- Projects Container -->
+        <div id="projectsContainer" class="space-y-6">
+            <!-- Project cards will be dynamically inserted here -->
+            <div id="loadingMessage" class="text-center py-12 text-gray-500">
+                <i class="fas fa-spinner fa-spin text-4xl mb-4"></i>
+                <p class="text-lg">Loading projects...</p>
+            </div>
+            <div id="noProjectsMessage" class="hidden text-center py-12 text-gray-500">
+                <i class="fas fa-folder-open text-4xl mb-4"></i>
+                <p class="text-lg">No projects found. Go to the dashboard to create your first project!</p>
             </div>
         </div>
     </main>
-
-    <!-- Log Modal (Hidden by default) -->
-    <div id="logModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="logModalTitle">Add New Log</h2>
-                <span class="close-btn">&times;</span>
-            </div>
-            <div class="modal-body">
-                <form id="logForm">
-                    <input type="hidden" id="logId">
-                    <div class="form-group">
-                        <label for="logTitle">Title</label>
-                        <input type="text" id="logTitle" name="title" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="logProject">Project</label>
-                        <select id="logProject" name="projectId" required>
-                            <option value="">Select a project</option>
-                            <!-- Dynamically populated -->
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="logContent">Content</label>
-                        <textarea id="logContent" name="content" rows="6" required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="logTags">Tags (comma separated)</label>
-                        <input type="text" id="logTags" name="tags" placeholder="e.g., bug, feature, documentation">
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" id="cancelLogBtn" class="btn btn-outline">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save Log</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
 
     <script type="module" src="my-logs.js"></script>
 </body>

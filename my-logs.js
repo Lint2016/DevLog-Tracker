@@ -1,385 +1,226 @@
-import { 
-    auth, 
-    db, 
-    collection, 
-    query, 
-    where, 
-    getDocs, 
-    addDoc, 
-    updateDoc, 
-    deleteDoc, 
-    doc, 
-    onSnapshot,
-    orderBy,
-    serverTimestamp
+import {
+    auth,
+    db,
+    collection,
+    query,
+    where,
+    getDocs,
+    onAuthStateChanged,
+    orderBy
 } from './firebase.js';
-import { showError, showSuccess } from './utils/errorHandler.js';
+import { showError } from './utils/errorHandler.js'; 
 
 // DOM Elements
-const logsContainer = document.getElementById('logsContainer');
-const logForm = document.getElementById('logForm');
-const logModal = document.getElementById('logModal');
-const newLogBtn = document.getElementById('newLogBtn');
-const cancelLogBtn = document.getElementById('cancelLogBtn');
-const searchLogs = document.getElementById('searchLogs');
-const filterProject = document.getElementById('filterProject');
+const projectsContainer = document.getElementById('projectsContainer');
 const filterDate = document.getElementById('filterDate');
+const loadingMessage = document.getElementById('loadingMessage');
+const noProjectsMessage = document.getElementById('noProjectsMessage');
+const userNavName = document.getElementById('userNavName'); 
+const userAvatar = document.getElementById('userAvatar'); 
 
 // State
-let projects = [];
-let logs = [];
 let currentUser = null;
+let allFetchedProjects = []; 
 
-// Initialize the page
-const init = () => {
-    setupEventListeners();
-    checkAuthState();
-};
+// --- Project Card Template (Adapted from dashboard.js, no buttons, summary focus) ---
+const projectCardTemplate_MyLogsPage = (projectData) => {
+    const createdAt = projectData.createdAt?.toDate ? projectData.createdAt.toDate() : new Date();
+    const projectTags = Array.isArray(projectData.tags)
+        ? projectData.tags
+        : (projectData.tags ? String(projectData.tags).split(',').map(t => t.trim()) : []);
 
-// Check authentication state
-const checkAuthState = () => {
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            currentUser = user;
-            updateUserInfo(user);
-            loadProjects(user.uid);
-            setupRealtimeListeners(user.uid);
-        } else {
-            window.location.href = 'auth.html';
-        }
-    });
-};
-
-// Update user info in the UI
-const updateUserInfo = (user) => {
-    const userNameElement = document.getElementById('userNavName');
-    const userAvatar = document.getElementById('userAvatar');
-    
-    if (userNameElement) {
-        const displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'User');
-        userNameElement.textContent = displayName;
+    // Truncate description for summary view
+    let summaryDescription = projectData.description || '';
+    if (summaryDescription.length > 150) {
+        summaryDescription = summaryDescription.substring(0, 147) + '...';
     }
-    
-    if (userAvatar) {
-        userAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'User')}&background=random`;
-    }
-};
 
-// Load projects for the current user
-const loadProjects = async (userId) => {
-    try {
-        const projectsRef = collection(db, 'projects');
-        const q = query(projectsRef, where('userId', '==', userId));
-        const querySnapshot = await getDocs(q);
-        
-        projects = [];
-        filterProject.innerHTML = '<option value="">All Projects</option>';
-        const projectSelect = document.getElementById('logProject');
-        projectSelect.innerHTML = '<option value="">Select a project</option>';
-        
-        querySnapshot.forEach((doc) => {
-            const project = { id: doc.id, ...doc.data() };
-            projects.push(project);
-            
-            // Add to filter dropdown
-            const option = document.createElement('option');
-            option.value = project.id;
-            option.textContent = project.name;
-            filterProject.appendChild(option.cloneNode(true));
-            
-            // Add to project select in form
-            projectSelect.appendChild(option);
-        });
-        
-    } catch (error) {
-        console.error('Error loading projects:', error);
-        showError({ message: 'Failed to load projects' });
-    }
-};
-
-// Set up real-time listeners for logs
-const setupRealtimeListeners = (userId) => {
-    // Listen for logs
-    const logsQuery = query(
-        collection(db, 'logs'),
-        where('userId', '==', userId),
-        orderBy('createdAt', 'desc')
-    );
-    
-    return onSnapshot(logsQuery, (snapshot) => {
-        logs = [];
-        logsContainer.innerHTML = '';
-        
-        if (snapshot.empty) {
-            showNoLogsMessage();
-            return;
-        }
-        
-        snapshot.forEach((doc) => {
-            logs.push({ id: doc.id, ...doc.data() });
-        });
-        
-        renderLogs(logs);
-    }, (error) => {
-        console.error('Error listening to logs:', error);
-    });
-};
-
-// Render logs to the UI
-const renderLogs = (logsToRender) => {
-    if (logsToRender.length === 0) {
-        showNoLogsMessage();
-        return;
-    }
-    
-    logsContainer.innerHTML = '';
-    
-    logsToRender.forEach(log => {
-        const project = projects.find(p => p.id === log.projectId) || { name: 'Unknown Project' };
-        const logDate = log.createdAt?.toDate() || new Date();
-        
-        const logElement = document.createElement('div');
-        logElement.className = 'bg-white rounded-lg shadow-md overflow-hidden';
-        logElement.innerHTML = `
-            <div class="p-6">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h3 class="text-xl font-semibold text-gray-800 mb-2">${log.title}</h3>
-                        <span class="inline-block bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full mb-3">
-                            ${project.name}
-                        </span>
-                    </div>
-                    <div class="text-sm text-gray-500">
-                        ${formatDate(logDate)}
-                    </div>
-                </div>
-                <p class="text-gray-600 mb-4 whitespace-pre-line">${log.content}</p>
-                ${log.tags ? `
-                    <div class="flex flex-wrap gap-2 mb-4">
-                        ${log.tags.split(',').map(tag => `
-                            <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">
-                                ${tag.trim()}
-                            </span>
-                        `).join('')}
-                    </div>
-                ` : ''}
-                <div class="flex justify-end space-x-2">
-                    <button class="text-indigo-600 hover:text-indigo-800" data-id="${log.id}">
-                        <i class="fas fa-edit"></i> Edit
-                    </button>
-                    <button class="text-red-600 hover:text-red-800 ml-2" data-id="${log.id}">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                </div>
+    return `
+    <div class="project-card my-logs-card bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-200 w-full mb-6">
+        <div class="card-header p-6 border-b border-gray-200 bg-gray-50">
+            <h3 class="text-2xl font-semibold text-gray-800 flex items-center mb-1">
+                <i class="fas fa-project-diagram text-indigo-600 mr-3"></i>
+                ${projectData.title || 'Untitled Project'}
+            </h3>
+            <div class="meta text-xs text-gray-500 flex flex-wrap items-center gap-x-4 gap-y-1">
+                <span class="flex items-center">
+                    <i class="far fa-calendar-alt text-gray-400 mr-1.5"></i>
+                    Created: ${createdAt.toLocaleDateString()}
+                </span>
+                <span class="status-badge inline-flex items-center px-2.5 py-0.5 rounded-full font-medium 
+                    ${projectData.status === 'Completed' ? 'bg-green-100 text-green-700' :
+                      projectData.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
+                      'bg-yellow-100 text-yellow-700'}">
+                    ${projectData.status || 'N/A'}
+                </span>
             </div>
-        `;
-        
-        logsContainer.appendChild(logElement);
-    });
-    
-    // Add event listeners to the new log cards
-    document.querySelectorAll('[data-id]').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const logId = e.currentTarget.getAttribute('data-id');
-            const log = logs.find(l => l.id === logId);
-            
-            if (e.currentTarget.innerHTML.includes('fa-trash')) {
-                deleteLog(logId);
-            } else {
-                editLog(log);
-            }
-        });
-    });
-};
-
-// Show "no logs" message
-const showNoLogsMessage = () => {
-    logsContainer.innerHTML = `
-        <div class="text-center py-12 text-gray-500">
-            <i class="fas fa-clipboard-list text-4xl mb-4"></i>
-            <p class="text-lg">No logs found. Create your first log to get started!</p>
         </div>
+        
+        <div class="card-content p-6 space-y-4">
+            ${summaryDescription ? `
+            <div>
+                <h4 class="text-base font-semibold text-white mb-1.5">Description</h4>
+                <p class="text-white text-base leading-relaxed">${summaryDescription}</p>
+            </div>` : '<p class="text-sm text-gray-500 italic">No description provided.</p>'}
+            
+            ${projectTags.length > 0 ? `
+            <div>
+                <h4 class="text-base font-semibold text-white mb-2">Tags</h4>
+                <div class="flex flex-wrap gap-2">
+                    ${projectTags.map(tag => `
+                        <span class="bg-gray-200 text-gray-600 px-3 py-1 rounded-full text-sm font-medium">${tag}</span>
+                    `).join('')}
+                </div>
+            </div>` : ''}
+        </div>
+    </div>
     `;
 };
 
-// Format date to readable format
-const formatDate = (date) => {
-    return new Intl.DateTimeFormat('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    }).format(date);
+// --- Date Helper Functions ---
+const isToday = (date) => {
+    const today = new Date();
+    return date.getDate() === today.getDate() &&
+           date.getMonth() === today.getMonth() &&
+           date.getFullYear() === today.getFullYear();
 };
 
-// Open log modal for new log
-const openNewLogModal = () => {
-    document.getElementById('logModalTitle').textContent = 'Add New Log';
-    document.getElementById('logForm').reset();
-    document.getElementById('logId').value = '';
-    logModal.classList.remove('hidden');
+const isThisWeek = (date) => {
+    const today = new Date();
+    const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + (today.getDay() === 0 ? -6 : 1))); 
+    firstDayOfWeek.setHours(0, 0, 0, 0);
+    const lastDayOfWeek = new Date(firstDayOfWeek);
+    lastDayOfWeek.setDate(lastDayOfWeek.getDate() + 6);
+    lastDayOfWeek.setHours(23, 59, 59, 999);
+    return date >= firstDayOfWeek && date <= lastDayOfWeek;
 };
 
-// Open log modal for editing
-const editLog = (log) => {
-    document.getElementById('logModalTitle').textContent = 'Edit Log';
-    document.getElementById('logId').value = log.id;
-    document.getElementById('logTitle').value = log.title;
-    document.getElementById('logProject').value = log.projectId;
-    document.getElementById('logContent').value = log.content;
-    document.getElementById('logTags').value = log.tags || '';
-    logModal.classList.remove('hidden');
+const isThisMonth = (date) => {
+    const today = new Date();
+    return date.getMonth() === today.getMonth() &&
+           date.getFullYear() === today.getFullYear();
 };
 
-// Save log (create or update)
-const saveLog = async (e) => {
-    e.preventDefault();
-    
-    const formData = new FormData(logForm);
-    const logData = {
-        title: formData.get('title'),
-        projectId: formData.get('projectId'),
-        content: formData.get('content'),
-        tags: formData.get('tags'),
-        userId: currentUser.uid,
-        updatedAt: serverTimestamp(),
-        ...(formData.get('id') ? {} : { createdAt: serverTimestamp() })
-    };
-    
-    try {
-        if (formData.get('id')) {
-            // Update existing log
-            const logRef = doc(db, 'logs', formData.get('id'));
-            await updateDoc(logRef, logData);
-            showSuccess({ message: 'Log updated successfully!' });
-        } else {
-            // Create new log
-            await addDoc(collection(db, 'logs'), logData);
-            showSuccess({ message: 'Log created successfully!' });
-        }
-        
-        closeLogModal();
-    } catch (error) {
-        console.error('Error saving log:', error);
-        showError({ message: 'Failed to save log. Please try again.' });
+// --- Core Logic ---
+const updateUserInfoInNav = (user) => {
+    if (userNavName) {
+        userNavName.textContent = user.displayName || user.email.split('@')[0];
     }
+    if (userAvatar) {
+        userAvatar.src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || user.email.split('@')[0])}&background=random&color=fff`;
+    }
+    const userDropdownToggle = document.getElementById('userDropdownToggle'); 
+    if(userDropdownToggle) userDropdownToggle.classList.remove('hidden');
 };
 
-// Delete log
-const deleteLog = async (logId) => {
-    if (!confirm('Are you sure you want to delete this log? This action cannot be undone.')) {
+const renderProjectCards = (projectsToRender) => {
+    if (!projectsContainer) return;
+    projectsContainer.innerHTML = ''; 
+
+    if (projectsToRender.length === 0) {
+        if (noProjectsMessage) noProjectsMessage.classList.remove('hidden');
+        if (loadingMessage) loadingMessage.classList.add('hidden');
         return;
     }
-    
-    try {
-        await deleteDoc(doc(db, 'logs', logId));
-        showSuccess({ message: 'Log deleted successfully!' });
-    } catch (error) {
-        console.error('Error deleting log:', error);
-        showError({ message: 'Failed to delete log. Please try again.' });
-    }
+
+    if (noProjectsMessage) noProjectsMessage.classList.add('hidden');
+    if (loadingMessage) loadingMessage.classList.add('hidden');
+
+    projectsToRender.forEach(project => {
+        projectsContainer.innerHTML += projectCardTemplate_MyLogsPage(project);
+    });
 };
 
-// Close log modal
-const closeLogModal = () => {
-    logModal.classList.add('hidden');
-};
+const applyFiltersAndRender = () => {
+    const filterValue = filterDate ? filterDate.value : 'all';
+    let filteredProjects = allFetchedProjects;
 
-// Filter logs based on search and filters
-const filterLogs = () => {
-    const searchTerm = searchLogs.value.toLowerCase();
-    const projectId = filterProject.value;
-    const dateFilter = filterDate.value;
-    
-    let filteredLogs = [...logs];
-    
-    // Filter by search term
-    if (searchTerm) {
-        filteredLogs = filteredLogs.filter(log => 
-            log.title.toLowerCase().includes(searchTerm) || 
-            log.content.toLowerCase().includes(searchTerm) ||
-            (log.tags && log.tags.toLowerCase().includes(searchTerm))
-        );
-    }
-    
-    // Filter by project
-    if (projectId) {
-        filteredLogs = filteredLogs.filter(log => log.projectId === projectId);
-    }
-    
-    // Filter by date
-    if (dateFilter !== 'all') {
-        const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        
-        filteredLogs = filteredLogs.filter(log => {
-            const logDate = log.createdAt?.toDate() || new Date();
-            
-            switch (dateFilter) {
-                case 'today':
-                    return logDate >= today;
-                case 'week':
-                    const weekAgo = new Date(today);
-                    weekAgo.setDate(today.getDate() - 7);
-                    return logDate >= weekAgo;
-                case 'month':
-                    const monthAgo = new Date(today);
-                    monthAgo.setMonth(today.getMonth() - 1);
-                    return logDate >= monthAgo;
-                default:
-                    return true;
-            }
+    if (filterValue !== 'all') {
+        filteredProjects = allFetchedProjects.filter(project => {
+            const projectDate = project.createdAt?.toDate ? project.createdAt.toDate() : new Date(project.createdAt);
+            if (filterValue === 'today') return isToday(projectDate);
+            if (filterValue === 'week') return isThisWeek(projectDate);
+            if (filterValue === 'month') return isThisMonth(projectDate);
+            return true;
         });
     }
-    
-    renderLogs(filteredLogs);
+    renderProjectCards(filteredProjects);
 };
 
-// Set up event listeners
-const setupEventListeners = () => {
-    // New log button
-    if (newLogBtn) {
-        newLogBtn.addEventListener('click', openNewLogModal);
+const loadAndDisplayProjects = async (userId) => {
+    if (loadingMessage) loadingMessage.classList.remove('hidden');
+    if (noProjectsMessage) noProjectsMessage.classList.add('hidden');
+    if (projectsContainer) projectsContainer.innerHTML = ''; 
+
+    try {
+        const projectsRef = collection(db, 'projects');
+        const q = query(projectsRef, where('userId', '==', userId), orderBy('createdAt', 'desc'));
+        const querySnapshot = await getDocs(q);
+
+        allFetchedProjects = [];
+        querySnapshot.forEach((doc) => {
+            allFetchedProjects.push({ id: doc.id, ...doc.data() });
+        });
+        
+        applyFiltersAndRender(); 
+
+    } catch (error) {
+        console.error('Error loading projects:', error);
+        if (showError) showError({ message: 'Failed to load projects. Please try again.' });
+        if (projectsContainer) projectsContainer.innerHTML = '<p class="text-red-500 text-center">Error loading projects.</p>';
+        if (loadingMessage) loadingMessage.classList.add('hidden');
     }
-    
-    // Close modal buttons
-    const closeButtons = document.querySelectorAll('.close-btn, #cancelLogBtn');
-    closeButtons.forEach(button => {
-        button.addEventListener('click', closeLogModal);
-    });
-    
-    // Close modal when clicking outside
-    window.addEventListener('click', (e) => {
-        if (e.target === logModal) {
-            closeLogModal();
+};
+
+const checkAuthState_MyProjectsPage = () => {
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUser = user;
+            updateUserInfoInNav(user); 
+            loadAndDisplayProjects(user.uid);
+        } else {
+            currentUser = null;
+            allFetchedProjects = [];
+            renderProjectCards([]); 
+            if (noProjectsMessage) noProjectsMessage.classList.remove('hidden'); 
+            if (loadingMessage) loadingMessage.classList.add('hidden');
+            // Optionally redirect to login page
+            // window.location.href = 'auth.html'; 
         }
     });
-    
-    // Form submission
-    if (logForm) {
-        logForm.addEventListener('submit', saveLog);
+};
+
+const initMyProjectsPage = () => {
+    checkAuthState_MyProjectsPage();
+    if (filterDate) {
+        filterDate.addEventListener('change', applyFiltersAndRender);
     }
-    
-    // Filter events
-    if (searchLogs) searchLogs.addEventListener('input', filterLogs);
-    if (filterProject) filterProject.addEventListener('change', filterLogs);
-    if (filterDate) filterDate.addEventListener('change', filterLogs);
-    
-    // Sign out button
+
     const signOutBtn = document.getElementById('signOutBtn');
     if (signOutBtn) {
-        signOutBtn.addEventListener('click', async () => {
-            try {
-                await auth.signOut();
-                window.location.href = 'auth.html';
-            } catch (error) {
-                console.error('Error signing out:', error);
-                showError({ message: 'Failed to sign out. Please try again.' });
+        signOutBtn.addEventListener('click', () => {
+            auth.signOut().then(() => {
+                window.location.href = 'auth.html'; 
+            }).catch((error) => {
+                console.error('Sign out error', error);
+                if(showError) showError({message: 'Error signing out.'});
+            });
+        });
+    }
+    
+    const userDropdownToggle = document.getElementById('userDropdownToggle');
+    const userDropdown = document.getElementById('userDropdown');
+    if (userDropdownToggle && userDropdown) {
+        userDropdownToggle.addEventListener('click', (event) => {
+            event.stopPropagation();
+            userDropdown.classList.toggle('hidden');
+        });
+        document.addEventListener('click', (event) => {
+            if (!userDropdown.contains(event.target) && !userDropdownToggle.contains(event.target)) {
+                userDropdown.classList.add('hidden');
             }
         });
     }
 };
 
-// Initialize the application
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', initMyProjectsPage);
