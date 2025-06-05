@@ -2,7 +2,6 @@
 
 /* Modal Styles */
 #signupModal {
-  display: none;
   position: fixed;
   top: 0;
   left: 0;
@@ -21,23 +20,22 @@
   border-radius: 8px;
   width: 95%;
   max-width: 500px;
-  position: relative;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   max-height: 90vh;
   overflow-y: auto;
-  margin: 20px;
   -webkit-overflow-scrolling: touch;
 }
 
 /* Small screens (phones) */
 @media (max-width: 480px) {
+ 
   #signupModal .modal-content {
     width: 100%;
+    max-width: 100%;
     height: auto;
     min-height: 100%;
     margin: 0;
     border-radius: 0;
-    padding: 0.75rem 0.75rem 1rem 0.75rem;
     display: flex;
     flex-direction: column;
   }
@@ -1418,4 +1416,11 @@ button[type="button"].secondary:hover {
     .project-card-footer {
         flex-wrap: wrap;
     }
+}
+#googleSignupImage{
+  width: 25%;
+  margin-top: 1rem;
+}
+#googleSignupImage:hover{
+  cursor: pointer;
 }

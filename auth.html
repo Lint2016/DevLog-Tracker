@@ -11,6 +11,36 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
    <script src="https://kit.fontawesome.com/e110590ce5.js" crossorigin="anonymous"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    .modal {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      max-width: 500px;
+      width: 100%;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 24px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body class="auth-body">
 
@@ -49,7 +79,7 @@
     </section>
   </div>
   <!-- Sign Up Modal -->
-<div id="signupModal" class="modal">
+<div id="signupModal" class="modal" style="display: none;">
   <div class="modal-content">
     <span class="close-btn" id="closeSignupModal">&times;</span>
     <h2>Create Account</h2>
@@ -67,6 +97,7 @@
         <input type="password" id="signup-password" placeholder="Create a password" required />
       </div>
       <button type="submit" class="auth-btn" id="signupBtn">Sign Up</button>
+      <img src="images/Screenshot 2025-06-05 011044.png" alt="" id="googleSignupImage">
     </form>
   </div>
 </div>

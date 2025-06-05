@@ -643,6 +643,44 @@
             margin-bottom: 1.5rem;
             font-size: 1.1rem;
         }
+        
+        /* Stats Section Styles */
+        .stats-container {
+            display: flex;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+        }
+        
+        .stat-card i {
+            font-size: 2rem;
+            color: var(--primary);
+        }
+        
+        .stat-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: white;
+        }
+        
+        .stat-card p {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
     </style>
 </head>
 <body>
@@ -662,12 +700,29 @@
     </header>
 
     <main class="dashboard-main">
+        <div class="stats-container">
+            <div class="stat-card">
+                <i class="fas fa-project-diagram"></i>
+                <div>
+                    <h3>Total Projects</h3>
+                    <p id="projectCount">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-clipboard-list"></i>
+                <div>
+                    <h3>Total Logs</h3>
+                    <p id="logCount">0</p>
+                </div>
+            </div>
+        </div>
+        
         <section class="user-info">
             <div class="user-greeting">
                 <h2>Welcome back, <span id="userName">User</span></h2>
                 <p>You are signed in as <strong id="userEmail">user@example.com</strong></p>
             </div>
-            <div class="user-stats">
+            <!-- <div class="user-stats">
                 <div class="stat-box">
                     <i class="fas fa-project-diagram"></i>
                     <div>
@@ -675,14 +730,14 @@
                         <span class="stat-label">Projects</span>
                     </div>
                 </div>
-                <div class="stat-box">
+              <div class="stat-box">
                     <i class="fas fa-clipboard-list"></i>
                     <div>
                         <span class="stat-number" id="logCount">0</span>
                         <span class="stat-label">Logs</span>
                     </div>
                 </div>
-            </div>
+            </div>--> 
         </section>
 
         <section class="projects-section">

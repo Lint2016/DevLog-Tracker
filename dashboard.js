@@ -18,6 +18,8 @@ import {
     updatePassword
 } from './firebase.js';
 import { showError, showSuccess } from './utils/errorHandler.js';
+
+
 // Function to open the edit modal
 const openEditModal = (projectData) => {
     console.log('openEditModal called with:', projectData);
@@ -712,32 +714,34 @@ document.querySelectorAll('.edit-btn').forEach(btn => {
     });
 });
 // Load projects from Firestore
-const loadProjects = async (userId) => {
+async function loadProjects(userId) {
     try {
-        // Reset the flag when loading new projects
-        editButtonListenersAttached = false;
-        
         const projectsRef = collection(db, 'projects');
         const q = query(projectsRef, where('userId', '==', userId));
         const querySnapshot = await getDocs(q);
         
-        projectCount = querySnapshot.size;
-        updateStatsUI();
-        
-        const projectsGrid = document.getElementById('projectsGrid');
-        if (!projectsGrid) return;
-        
         projectsGrid.innerHTML = ''; // Clear existing content
         let logCount = 0;
+        let projectCount = 0;
         
         querySnapshot.forEach((doc) => {
             const project = { id: doc.id, ...doc.data() };
             projectsGrid.innerHTML += projectCardTemplate(project);
             logCount += project.logCount || 0;
+            projectCount++;
         });
         
-        // Update counters
-        document.getElementById('logCount').textContent = logCount;
+        // Safely update counters if elements exist
+        const logCountElement = document.getElementById('logCount');
+        const projectCountElement = document.getElementById('projectCount');
+        
+        if (logCountElement) {
+            logCountElement.textContent = logCount;
+        }
+        
+        if (projectCountElement) {
+            projectCountElement.textContent = projectCount;
+        }
         
         // Add event listeners to the new cards
         setupProjectCardListeners();
@@ -1125,37 +1129,68 @@ const deleteProject = async (projectId) => {
     }
 };
 
-
-// Initialize the dashboard
-const initDashboard = () => {
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            // Update user info in the UI
-            updateUserInfo(user);
-            
-            // Fetch and display projects
-            await fetchProjects(user.uid);
-            
-            // Set up real-time updates for projects
-            const projectsRef = collection(db, 'projects');
-            const q = query(projectsRef, where('userId', '==', user.uid));
-            
-            onSnapshot(q, (snapshot) => {
-                projects = [];
-                snapshot.forEach((doc) => {
-                    projects.push({ id: doc.id, ...doc.data() });
-                });
-                renderProjects();
-                updateProjectCount(auth.currentUser.uid);
-            });
-            
-        } else {
-            // User is signed out, redirect to login
-            window.location.href = 'auth.html';
-        }
-    });
+// Temporary debug function - run this in browser console
+// Make checkProjectStatus available globally
+window.checkProjectStatus = async function() {
+    const projectId = 'IIrAVvVU4YOwmMsDhiZu'; // From your logs
+    const projectRef = doc(db, 'projects', projectId);
+    const projectDoc = await getDoc(projectRef);
+    
+    if (projectDoc.exists()) {
+        const project = projectDoc.data();
+        const now = new Date();
+        const lastUpdated = project.lastUpdated?.toDate();
+        const daysSinceUpdate = lastUpdated ? (now - lastUpdated) / (1000 * 60 * 60 * 24) : null;
+        
+        console.log('Project Details:', {
+            title: project.title,
+            status: project.status,
+            lastUpdated: lastUpdated,
+            daysSinceUpdate: daysSinceUpdate?.toFixed(1),
+            isStale: daysSinceUpdate > 3
+        });
+    } else {
+        console.log('Project not found');
+    }
 };
 
+// Initialize the dashboard
+async function initDashboard() {
+    console.log('A. Starting dashboard initialization...');
+    
+    try {
+        onAuthStateChanged(auth, async (user) => {
+            console.log('B. Auth state changed, user:', user ? user.uid : 'No user');
+            
+            if (user) {
+                try {
+                    console.log('C. User authenticated, loading projects...');
+                    await loadProjects(user.uid);
+                    
+                    // Wait a moment for the UI to settle, then check for reminders
+                    setTimeout(async () => {
+                        console.log('D. Checking for incomplete projects...');
+                        try {
+                            await checkForIncompleteProjects(user.uid);
+                            console.log('E. Finished checking for incomplete projects');
+                        } catch (error) {
+                            console.error('Error in checkForIncompleteProjects:', error);
+                        }
+                    }, 1000);
+                    
+                } catch (error) {
+                    console.error('Error in dashboard initialization:', error);
+                }
+            } else {
+                console.log('C. No user, redirecting to auth page');
+                window.location.href = 'auth.html';
+            }
+        });
+    } catch (error) {
+        console.error('Fatal error initializing dashboard:', error);
+        showError('Failed to initialize dashboard. Please try again.');
+    }
+}
 // Start the dashboard when the DOM is loaded
 document.addEventListener('DOMContentLoaded', initDashboard);
 
@@ -1590,6 +1625,157 @@ if (newProjectBtn) {
         window.location.href = 'new-project.html';
     });
 }
+
+// Add this after your imports
+const INACTIVITY_THRESHOLD_DAYS = 2; // Changed from 3 to 2 days for testing
+const REMINDER_COOLDOWN_HOURS = 12; // Don't show reminder more than once every 12 hours
+
+// Add this function to update projects missing lastUpdated
+async function fixMissingLastUpdated(projectId) {
+    try {
+        const projectRef = doc(db, 'projects', projectId);
+        const projectDoc = await getDoc(projectRef);
+        
+        if (projectDoc.exists()) {
+            const project = projectDoc.data();
+            if (!project.lastUpdated) {
+                console.log('Adding lastUpdated to project:', project.title);
+                await updateDoc(projectRef, {
+                    lastUpdated: project.createdAt || new Date()
+                });
+                return true;
+            }
+        }
+        return false;
+    } catch (error) {
+        console.error('Error fixing lastUpdated:', error);
+        return false;
+    }
+}
+
+// Update the checkForIncompleteProjects function
+async function checkForIncompleteProjects(userId) {
+    console.log('1. Starting checkForIncompleteProjects for user:', userId);
+    
+    try {
+        console.log('2. Querying Firestore for projects...');
+        const projectsRef = collection(db, 'projects');
+        const q = query(
+            projectsRef,
+            where('userId', '==', userId),
+            where('status', 'in', ['In Progress', 'Not Started'])
+        );
+        
+        const querySnapshot = await getDocs(q);
+        console.log('3. Found', querySnapshot.size, 'incomplete projects');
+        
+        const now = new Date();
+        const lastReminderTime = localStorage.getItem('lastReminderTime');
+        
+        // Check if we've shown a reminder recently
+        if (lastReminderTime) {
+            const lastReminder = new Date(parseInt(lastReminderTime));
+            const hoursSinceLastReminder = (now - lastReminder) / (1000 * 60 * 60);
+            console.log('Last reminder was', hoursSinceLastReminder.toFixed(1), 'hours ago');
+            
+            if (hoursSinceLastReminder < REMINDER_COOLDOWN_HOURS) {
+                console.log('Reminder shown recently, skipping');
+                return;
+            }
+        }
+        
+        const staleProjects = [];
+        
+        // Process each project
+        for (const doc of querySnapshot.docs) {
+            const project = doc.data();
+            
+            // Use lastUpdated if it exists, otherwise use createdAt, or current date as fallback
+            const lastUpdated = project.lastUpdated?.toDate() || 
+                               project.createdAt?.toDate() || 
+                               new Date(0); // Fallback to epoch start
+            
+            const daysSinceUpdate = (now - lastUpdated) / (1000 * 60 * 60 * 24);
+            
+            console.log(`Project "${project.title}" last updated:`, lastUpdated, 
+                       `(${daysSinceUpdate.toFixed(1)} days ago)`);
+            
+            if (daysSinceUpdate >= INACTIVITY_THRESHOLD_DAYS) {
+                console.log('Adding to stale projects:', project.title);
+                staleProjects.push({
+                    id: doc.id,
+                    title: project.title || 'Untitled Project',
+                    daysInactive: Math.floor(daysSinceUpdate)
+                });
+                
+                // Fix missing lastUpdated for future checks
+                if (!project.lastUpdated) {
+                    await fixMissingLastUpdated(doc.id);
+                }
+            }
+        }
+        
+        console.log('4. Total stale projects:', staleProjects.length);
+        
+        if (staleProjects.length > 0) {
+            console.log('5. Showing reminder for projects:', staleProjects);
+            showIncompleteProjectsReminder(staleProjects);
+            // Update last reminder time
+            localStorage.setItem('lastReminderTime', now.getTime().toString());
+        } else {
+            console.log('5. No stale projects found');
+        }
+    } catch (error) {
+        console.error('Error in checkForIncompleteProjects:', error);
+    }
+}
+
+// Function to show the reminder modal
+function showIncompleteProjectsReminder(projects) {
+    const projectList = projects.map(project => 
+        `• ${project.title || 'Untitled Project'} (${project.daysInactive} days without updates)`
+    ).join('\n');
+    
+    Swal.fire({
+        title: 'Projects Need Your Attention',
+        html: `You have ${projects.length} project(s) that haven't been updated in a while:<br><br>
+               <div style="text-align: left; max-height: 200px; overflow-y: auto; padding: 10px; background: #f8f9fa; border-radius: 5px; margin: 10px 0; color: #333;">
+                   ${projectList.replace(/\n/g, '<br>')}
+               </div>`,
+        icon: 'info',
+        confirmButtonText: 'View Projects',
+        confirmButtonColor: '#4a6cf7',
+        showCancelButton: true,
+        cancelButtonText: 'Remind Me Later',
+        focusConfirm: false,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        allowEnterKey: false,
+        backdrop: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Scroll to projects section
+            const projectsSection = document.getElementById('projectsGrid');
+            if (projectsSection) {
+                projectsSection.scrollIntoView({ behavior: 'smooth' });
+                
+                // Optional: Highlight the stale projects
+                projects.forEach(project => {
+                    const projectElement = document.querySelector(`[data-id="${project.id}"]`);
+                    if (projectElement) {
+                        projectElement.style.animation = 'pulse 2s infinite';
+                        setTimeout(() => {
+                            projectElement.style.animation = '';
+                        }, 10000); // Remove highlight after 10 seconds
+                    }
+                });
+            }
+        }
+    });
+}
+
+
+
 // Initialize everything when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize auth state listener
