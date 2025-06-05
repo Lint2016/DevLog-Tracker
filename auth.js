@@ -7,7 +7,11 @@ import {
     updateProfile,
     setPersistence,
     browserSessionPersistence,
-    browserLocalPersistence
+    browserLocalPersistence,
+    GoogleAuthProvider,
+    signInWithPopup,
+    signInWithRedirect,
+    getRedirectResult
 } from "./firebase.js";
 import { 
     sanitizeInput, 
@@ -190,6 +194,42 @@ const handlePasswordReset = async (e) => {
     }
 };
 
+// Initialize Google provider
+const googleProvider = new GoogleAuthProvider();
+
+/**
+ * Handles Google Sign-In
+ */
+const handleGoogleSignIn = async () => {
+    try {
+        // Set session persistence
+        await setPersistence(auth, browserSessionPersistence);
+        
+        // Sign in with Google popup
+        const result = await signInWithPopup(auth, googleProvider);
+        const user = result.user;
+        
+        // Store user data in localStorage
+        const userData = {
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            emailVerified: user.emailVerified,
+            photoURL: user.photoURL
+        };
+        localStorage.setItem('user', JSON.stringify(userData));
+        
+        // Redirect to dashboard
+        window.location.href = 'dashboard.html';
+    } catch (error) {
+        console.error('Google Sign-In Error:', error);
+        showError({
+            title: 'Google Sign-In Failed',
+            message: error.message || 'Failed to sign in with Google. Please try again.'
+        });
+    }
+};
+
 // Initialize the auth page
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize session management
@@ -206,6 +246,35 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (forgotPasswordForm) {
         forgotPasswordForm.addEventListener('submit', handlePasswordReset);
+    }
+
+    // Add Google Sign-In event listener
+    const googleSignInBtn = document.getElementById('googleSignInBtn');
+    if (googleSignInBtn) {
+        googleSignInBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const originalText = googleSignInBtn.innerHTML;
+            
+            try {
+                // Show loading state
+                googleSignInBtn.disabled = true;
+                googleSignInBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
+                
+                // Handle Google Sign-In
+                await handleGoogleSignIn();
+            } catch (error) {
+                console.error('Google Sign-In Error:', error);
+                // Reset button state
+                googleSignInBtn.disabled = false;
+                googleSignInBtn.innerHTML = originalText;
+                
+                // Show error message to user
+                showError({
+                    title: 'Google Sign-In Failed',
+                    message: error.message || 'Failed to sign in with Google. Please try again.'
+                });
+            }
+        });
     }
 
     // Modal elements

@@ -15,30 +15,105 @@
     .modal {
       position: fixed;
       top: 0;
+      left: 0;
       right: 0;
       bottom: 0;
-      left: 0;
       background-color: rgba(0, 0, 0, 0.5);
       display: flex;
       justify-content: center;
       align-items: center;
+      z-index: 1000;
+      padding: 0;
+      margin: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: auto;
     }
 
     .modal-content {
       background-color: #fff;
-      padding: 20px;
+      padding: 30px;
       border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      width: 90%;
       max-width: 500px;
-      width: 100%;
+      position: relative;
+      margin: auto;
+      box-sizing: border-box;
+      transform: none;
+      opacity: 1;
+      animation: none;
+    }
+
+    @media (min-width: 768px) {
+      .modal-content {
+        width: 100%;
+        margin: 20px;
+      }
     }
 
     .close-btn {
       position: absolute;
-      top: 10px;
-      right: 10px;
+      top: 15px;
+      right: 15px;
       font-size: 24px;
       cursor: pointer;
+      background: none;
+      border: none;
+      color: #666;
+      transition: color 0.2s;
+    }
+
+    .close-btn:hover {
+      color: #333;
+    }
+    
+    /* Google Sign-In Button Styles */
+    .google-signin-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 10px;
+      margin: 15px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: white;
+      color: #444;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    
+    .google-signin-btn:hover {
+      background-color: #f7f7f7;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .google-icon {
+      width: 18px;
+      height: 18px;
+      margin-right: 10px;
+    }
+    
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 15px 0;
+      color: #777;
+      font-size: 14px;
+    }
+    
+    .divider::before,
+    .divider::after {
+      content: "";
+      flex: 1;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    .divider span {
+      padding: 0 10px;
     }
   </style>
 </head>
@@ -97,13 +172,19 @@
         <input type="password" id="signup-password" placeholder="Create a password" required />
       </div>
       <button type="submit" class="auth-btn" id="signupBtn">Sign Up</button>
-      <img src="images/Screenshot 2025-06-05 011044.png" alt="" id="googleSignupImage">
+      <div class="divider">
+        <span>or</span>
+      </div>
+      <button type="button" id="googleSignInBtn" class="google-signin-btn">
+        <img src="https://www.google.com/favicon.ico" alt="Google" class="google-icon">
+        <span>Sign up with Google</span>
+      </button>
     </form>
   </div>
 </div>
 
   <!-- Forgot Password Modal -->
-  <div id="forgotPasswordModal" class="modal">
+  <div id="forgotPasswordModal" class="modal" style="display: none;">
     <div class="modal-content">
       <span class="close-btn" id="closeForgotPassword">&times;</span>
       <h2>Reset Your Password</h2>
