@@ -1509,6 +1509,7 @@ if (updatePasswordBtn) {
 // Handle account deletion
 if (deleteAccountBtn) {
     deleteAccountBtn.addEventListener('click', async () => {
+        console.log('delete button was clicked');
         const result = await Swal.fire({
             title: 'Delete Account?',
             text: 'This will permanently delete your account and all associated data. This action cannot be undone!',
