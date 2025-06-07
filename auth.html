@@ -154,6 +154,7 @@
     </section>
   </div>
   <!-- Sign Up Modal -->
+  
 <div id="signupModal" class="modal" style="display: none;">
   <div class="modal-content">
     <span class="close-btn" id="closeSignupModal">&times;</span>
@@ -169,8 +170,34 @@
       </div>
       <div class="form-group">
         <label for="signup-password">Password</label>
-        <input type="password" id="signup-password" placeholder="Create a password" required />
+        <input type="password" id="signup-password" placeholder="Create a password" oninput="validatePassword()" required />
+        <div id="passwordValidatorChecker" style="color:red"></div>
       </div>
+       <!--password Validation codes-->
+   <script>
+    function validatePassword(){
+       const password = document.getElementById('signup-password').value;
+       const feedback = document.getElementById('passwordValidatorChecker');
+       if (password.length<8){
+        feedback.textContent='Password must at least 8 charaters long';
+       }else if(!/[A-Z]/.test(password)){
+        feedback.textContent='Password must contain at least one Capital letter';
+       }else if(!/[a-z]/.test(password)){
+        feedback.textContent='Password must contain at least one small letter'
+       }else if(!/[0-9]/.test(password)){
+        feedback.textContent='Password must contain at least one number';
+       }else if(!/[!@#$%^&*(),.?":{}|<>]/.test(password)){
+        feedback.textContent='Password must contain at least one special character';
+       }else{
+        feedback.textContent='';
+        feedback.style.color= 'green';
+        return;
+       }
+       feedback.style.color= 'red';
+    }
+    //we attach the eventlisterner to the input
+    document.getElementById('signup-password').addEventListener('input', validatePassword);
+   </script>
       <button type="submit" class="auth-btn" id="signupBtn">Sign Up</button>
       <div class="divider">
         <span>or</span>
