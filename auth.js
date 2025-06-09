@@ -24,6 +24,7 @@ import {
 } from './utils/errorHandler.js';
 import { initSession } from './utils/session.js';
 
+
 // DOM Elements
 const signupForm = document.getElementById('signupForm');
 const loginForm = document.getElementById('loginForm');
@@ -194,8 +195,13 @@ const handlePasswordReset = async (e) => {
     }
 };
 
-// Initialize Google provider
+// Initialize Google provider with additional scopes
 const googleProvider = new GoogleAuthProvider();
+googleProvider.addScope('profile');
+googleProvider.addScope('email');
+googleProvider.setCustomParameters({
+    prompt: 'select_account' // Forces account selection even for one account
+});
 
 /**
  * Handles Google Sign-In
@@ -204,31 +210,65 @@ const handleGoogleSignIn = async () => {
     try {
         // Set session persistence
         await setPersistence(auth, browserSessionPersistence);
-        
-        // Sign in with Google popup
-        const result = await signInWithPopup(auth, googleProvider);
-        const user = result.user;
-        
-        // Store user data in localStorage
-        const userData = {
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-            emailVerified: user.emailVerified,
-            photoURL: user.photoURL
-        };
-        localStorage.setItem('user', JSON.stringify(userData));
-        
-        // Redirect to dashboard
-        window.location.href = 'dashboard.html';
+
+        // Check if device is mobile
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+        if (isMobile) {
+            // Use redirect for mobile devices
+            await signInWithRedirect(auth, googleProvider);
+        } else {
+            // Use popup for desktop
+            const result = await signInWithPopup(auth, googleProvider);
+            const user = result.user;
+
+            // Store user data
+            const userData = {
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName,
+                emailVerified: user.emailVerified,
+                photoURL: user.photoURL
+            };
+            localStorage.setItem('user', JSON.stringify(userData));
+
+            // Redirect to dashboard
+            window.location.href = 'dashboard.html';
+        }
     } catch (error) {
         console.error('Google Sign-In Error:', error);
+        throw error; // Re-throw to be caught by the calling function
+    }
+};
+
+// Handle redirect result on page load
+getRedirectResult(auth)
+    .then((result) => {
+        if (result && result.user) {
+            const user = result.user;
+
+            // Store user data
+            const userData = {
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName,
+                emailVerified: user.emailVerified,
+                photoURL: user.photoURL
+            };
+            localStorage.setItem('user', JSON.stringify(userData));
+
+            // Redirect to dashboard
+            window.location.href = 'dashboard.html';
+        }
+    })
+    .catch((error) => {
+        console.error('Redirect Sign-In Error:', error);
         showError({
             title: 'Google Sign-In Failed',
             message: error.message || 'Failed to sign in with Google. Please try again.'
         });
-    }
-};
+    });
+
 
 // Initialize the auth page
 document.addEventListener('DOMContentLoaded', () => {
@@ -252,7 +292,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const googleSignInBtn = document.getElementById('googleSignInBtn');
     if (googleSignInBtn) {
         googleSignInBtn.addEventListener('click', async (e) => {
+            console.log('Google sign-in button clicked');
             e.preventDefault();
+            
             const originalText = googleSignInBtn.innerHTML;
             
             try {
@@ -262,6 +304,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Handle Google Sign-In
                 await handleGoogleSignIn();
+                
+                // If successful, the page will redirect
             } catch (error) {
                 console.error('Google Sign-In Error:', error);
                 // Reset button state
