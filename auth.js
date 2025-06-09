@@ -214,48 +214,52 @@ const handleGoogleSignIn = async () => {
         await setPersistence(auth, browserSessionPersistence);
         console.log('Session persistence set');
 
-        // Check if device is mobile
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        console.log('Is mobile device:', isMobile);
+        // TEMPORARY: Force popup for testing on mobile
+        const isMobile = false; // Force popup for testing
+        console.log('TESTING: Forcing popup mode for mobile');
 
         if (isMobile) {
+            // This part won't run now
             console.log('Initiating Google Sign-In with redirect (mobile)');
             try {
                 await signInWithRedirect(auth, googleProvider);
                 console.log('Redirect initiated, page will reload after authentication');
-                // The page will reload after redirect
-                return; // Exit early as we're redirecting
+                return;
             } catch (redirectError) {
                 console.error('Redirect Sign-In Error:', redirectError);
-                throw redirectError; // Re-throw to be caught by the outer catch
+                throw redirectError;
             }
-        } 
+        }
         
-        // Desktop flow - use popup
-        console.log('Initiating Google Sign-In with popup (desktop)');
-        const result = await signInWithPopup(auth, googleProvider);
-        const user = result.user;
-        console.log('User signed in:', user.email);
+        // Desktop flow - use popup (now also for mobile during testing)
+        console.log('Initiating Google Sign-In with popup');
+        try {
+            const result = await signInWithPopup(auth, googleProvider);
+            const user = result.user;
+            console.log('User signed in:', user.email);
+            
+            // Store user data
+            const userData = {
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName,
+                emailVerified: user.emailVerified,
+                photoURL: user.photoURL
+            };
+            localStorage.setItem('user', JSON.stringify(userData));
+            console.log('User data stored in localStorage');
 
-        // Store user data
-        const userData = {
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-            emailVerified: user.emailVerified,
-            photoURL: user.photoURL
-        };
-        localStorage.setItem('user', JSON.stringify(userData));
-        console.log('User data stored in localStorage');
-
-        // Redirect to dashboard
-        window.location.href = 'dashboard.html';
+            // Redirect to dashboard
+            window.location.href = 'dashboard.html';
+        } catch (popupError) {
+            console.error('Popup Sign-In Error:', popupError);
+            throw popupError;
+        }
     } catch (error) {
         console.error('Google Sign-In Error:', error);
-        throw error; // Re-throw to be caught by the calling function
+        throw error;
     }
 };
-
 // Handle redirect result on page load
 const handleRedirectResult = async () => {
     console.log('Checking for redirect result...');
