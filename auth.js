@@ -208,20 +208,65 @@ googleProvider.setCustomParameters({
  */
 const handleGoogleSignIn = async () => {
     try {
+        console.log('Starting Google Sign-In process...');
+        
         // Set session persistence
         await setPersistence(auth, browserSessionPersistence);
+        console.log('Session persistence set');
 
         // Check if device is mobile
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        console.log('Is mobile device:', isMobile);
 
         if (isMobile) {
-            // Use redirect for mobile devices
-            await signInWithRedirect(auth, googleProvider);
-        } else {
-            // Use popup for desktop
-            const result = await signInWithPopup(auth, googleProvider);
-            const user = result.user;
+            console.log('Initiating Google Sign-In with redirect (mobile)');
+            try {
+                await signInWithRedirect(auth, googleProvider);
+                console.log('Redirect initiated, page will reload after authentication');
+                // The page will reload after redirect
+                return; // Exit early as we're redirecting
+            } catch (redirectError) {
+                console.error('Redirect Sign-In Error:', redirectError);
+                throw redirectError; // Re-throw to be caught by the outer catch
+            }
+        } 
+        
+        // Desktop flow - use popup
+        console.log('Initiating Google Sign-In with popup (desktop)');
+        const result = await signInWithPopup(auth, googleProvider);
+        const user = result.user;
+        console.log('User signed in:', user.email);
 
+        // Store user data
+        const userData = {
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            emailVerified: user.emailVerified,
+            photoURL: user.photoURL
+        };
+        localStorage.setItem('user', JSON.stringify(userData));
+        console.log('User data stored in localStorage');
+
+        // Redirect to dashboard
+        window.location.href = 'dashboard.html';
+    } catch (error) {
+        console.error('Google Sign-In Error:', error);
+        throw error; // Re-throw to be caught by the calling function
+    }
+};
+
+// Handle redirect result on page load
+const handleRedirectResult = async () => {
+    console.log('Checking for redirect result...');
+    try {
+        const result = await getRedirectResult(auth);
+        console.log('Redirect result:', result);
+        
+        if (result && result.user) {
+            const user = result.user;
+            console.log('User signed in via redirect:', user.email);
+            
             // Store user data
             const userData = {
                 uid: user.uid,
@@ -231,47 +276,26 @@ const handleGoogleSignIn = async () => {
                 photoURL: user.photoURL
             };
             localStorage.setItem('user', JSON.stringify(userData));
+            console.log('User data stored in localStorage');
 
             // Redirect to dashboard
             window.location.href = 'dashboard.html';
+        } else {
+            console.log('No redirect result found');
         }
     } catch (error) {
-        console.error('Google Sign-In Error:', error);
-        throw error; // Re-throw to be caught by the calling function
+        console.error('Redirect Sign-In Error:', error);
+        showError({
+            title: 'Google Sign-In Failed',
+            message: error.message || 'Failed to complete Google Sign-In. Please try again.'
+        });
     }
 };
 
-// Handle redirect result on page load
+// Initialize the auth page
 document.addEventListener('DOMContentLoaded', () => {
-    // Handle the redirect result when the page loads
-    const handleRedirectResult = async () => {
-        try {
-            const result = await getRedirectResult(auth);
-            if (result && result.user) {
-                const user = result.user;
-                
-                // Store user data
-                const userData = {
-                    uid: user.uid,
-                    email: user.email,
-                    displayName: user.displayName,
-                    emailVerified: user.emailVerified,
-                    photoURL: user.photoURL
-                };
-                localStorage.setItem('user', JSON.stringify(userData));
-
-                // Redirect to dashboard
-                window.location.href = 'dashboard.html';
-            }
-        } catch (error) {
-            console.error('Google Sign-In Redirect Error:', error);
-            showError({
-                title: 'Google Sign-In Failed',
-                message: error.message || 'Failed to complete Google Sign-In. Please try again.'
-            });
-        }
-    };
-
+    console.log('DOM fully loaded, initializing auth...');
+    
     // Call the redirect result handler
     handleRedirectResult();
 
@@ -309,7 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 await handleGoogleSignIn();
                 
                 // If we get here, it's not a redirect flow
-                // The popup flow will handle the redirect automatically
+                console.log('Sign-in process completed without redirect');
             } catch (error) {
                 console.error('Google Sign-In Error:', error);
                 // Reset button state
