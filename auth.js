@@ -242,36 +242,39 @@ const handleGoogleSignIn = async () => {
 };
 
 // Handle redirect result on page load
-getRedirectResult(auth)
-    .then((result) => {
-        if (result && result.user) {
-            const user = result.user;
-
-            // Store user data
-            const userData = {
-                uid: user.uid,
-                email: user.email,
-                displayName: user.displayName,
-                emailVerified: user.emailVerified,
-                photoURL: user.photoURL
-            };
-            localStorage.setItem('user', JSON.stringify(userData));
-
-            // Redirect to dashboard
-            window.location.href = 'dashboard.html';
-        }
-    })
-    .catch((error) => {
-        console.error('Redirect Sign-In Error:', error);
-        showError({
-            title: 'Google Sign-In Failed',
-            message: error.message || 'Failed to sign in with Google. Please try again.'
-        });
-    });
-
-
-// Initialize the auth page
 document.addEventListener('DOMContentLoaded', () => {
+    // Handle the redirect result when the page loads
+    const handleRedirectResult = async () => {
+        try {
+            const result = await getRedirectResult(auth);
+            if (result && result.user) {
+                const user = result.user;
+                
+                // Store user data
+                const userData = {
+                    uid: user.uid,
+                    email: user.email,
+                    displayName: user.displayName,
+                    emailVerified: user.emailVerified,
+                    photoURL: user.photoURL
+                };
+                localStorage.setItem('user', JSON.stringify(userData));
+
+                // Redirect to dashboard
+                window.location.href = 'dashboard.html';
+            }
+        } catch (error) {
+            console.error('Google Sign-In Redirect Error:', error);
+            showError({
+                title: 'Google Sign-In Failed',
+                message: error.message || 'Failed to complete Google Sign-In. Please try again.'
+            });
+        }
+    };
+
+    // Call the redirect result handler
+    handleRedirectResult();
+
     // Initialize session management
     const cleanup = initSession();
     
@@ -305,7 +308,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Handle Google Sign-In
                 await handleGoogleSignIn();
                 
-                // If successful, the page will redirect
+                // If we get here, it's not a redirect flow
+                // The popup flow will handle the redirect automatically
             } catch (error) {
                 console.error('Google Sign-In Error:', error);
                 // Reset button state
