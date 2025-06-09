@@ -214,46 +214,16 @@ const handleGoogleSignIn = async () => {
         await setPersistence(auth, browserSessionPersistence);
         console.log('Session persistence set');
 
-        // TEMPORARY: Force popup for testing on mobile
-        const isMobile = false; // Force popup for testing
-        console.log('TESTING: Forcing popup mode for mobile');
-
-        if (isMobile) {
-            // This part won't run now
-            console.log('Initiating Google Sign-In with redirect (mobile)');
-            try {
-                await signInWithRedirect(auth, googleProvider);
-                console.log('Redirect initiated, page will reload after authentication');
-                return;
-            } catch (redirectError) {
-                console.error('Redirect Sign-In Error:', redirectError);
-                throw redirectError;
-            }
-        }
-        
-        // Desktop flow - use popup (now also for mobile during testing)
-        console.log('Initiating Google Sign-In with popup');
+        // Always use redirect for better compatibility
+        console.log('Initiating Google Sign-In with redirect');
         try {
-            const result = await signInWithPopup(auth, googleProvider);
-            const user = result.user;
-            console.log('User signed in:', user.email);
-            
-            // Store user data
-            const userData = {
-                uid: user.uid,
-                email: user.email,
-                displayName: user.displayName,
-                emailVerified: user.emailVerified,
-                photoURL: user.photoURL
-            };
-            localStorage.setItem('user', JSON.stringify(userData));
-            console.log('User data stored in localStorage');
-
-            // Redirect to dashboard
-            window.location.href = 'dashboard.html';
-        } catch (popupError) {
-            console.error('Popup Sign-In Error:', popupError);
-            throw popupError;
+            await signInWithRedirect(auth, googleProvider);
+            console.log('Redirect initiated, page will reload after authentication');
+            // The page will reload after redirect
+            return;
+        } catch (error) {
+            console.error('Google Sign-In Redirect Error:', error);
+            throw error;
         }
     } catch (error) {
         console.error('Google Sign-In Error:', error);
