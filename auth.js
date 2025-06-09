@@ -200,7 +200,8 @@ const googleProvider = new GoogleAuthProvider();
 googleProvider.addScope('profile');
 googleProvider.addScope('email');
 googleProvider.setCustomParameters({
-    prompt: 'select_account' // Forces account selection even for one account
+    prompt: 'select_account',
+    hd: '*'
 });
 
 /**
@@ -214,210 +215,239 @@ const handleGoogleSignIn = async () => {
         await setPersistence(auth, browserSessionPersistence);
         console.log('Session persistence set');
 
-        // Always use redirect for better compatibility
-        console.log('Initiating Google Sign-In with redirect');
-        try {
-            await signInWithRedirect(auth, googleProvider);
-            console.log('Redirect initiated, page will reload after authentication');
-            // The page will reload after redirect
-            return;
-        } catch (error) {
-            console.error('Google Sign-In Redirect Error:', error);
-            throw error;
-        }
-    } catch (error) {
-        console.error('Google Sign-In Error:', error);
-        throw error;
-    }
-};
-// Handle redirect result on page load
-const handleRedirectResult = async () => {
-    console.log('Checking for redirect result...');
-    try {
-        const result = await getRedirectResult(auth);
-        console.log('Redirect result:', result);
+        // Force page reload after sign-in to ensure clean state
+        localStorage.setItem('googleSignInInitiated', 'true');
         
-        if (result && result.user) {
-            const user = result.user;
-            console.log('User signed in via redirect:', user.email);
-            
-            // Store user data
-            const userData = {
-                uid: user.uid,
-                email: user.email,
-                displayName: user.displayName,
-                emailVerified: user.emailVerified,
-                photoURL: user.photoURL
-            };
-            localStorage.setItem('user', JSON.stringify(userData));
-            console.log('User data stored in localStorage');
-
-            // Redirect to dashboard
-            window.location.href = 'dashboard.html';
-        } else {
-            console.log('No redirect result found');
-        }
+        // Use popup for all devices for now to debug
+        console.log('Initiating Google Sign-In with popup');
+        const result = await signInWithPopup(auth, googleProvider);
+        
+        // If we get here, sign-in was successful
+        const user = result.user;
+        console.log('Google Sign-In successful:', user.email);
+        
+        // Store user data
+        const userData = {
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            emailVerified: user.emailVerified,
+            photoURL: user.photoURL
+        };
+        
+        localStorage.setItem('user', JSON.stringify(userData));
+        console.log('User data stored, redirecting to dashboard...');
+        
+        // Redirect to dashboard
+        window.location.href = 'dashboard.html';
+        
     } catch (error) {
-        console.error('Redirect Sign-In Error:', error);
+        console.error('Google Sign-In Error:', {
+            code: error.code,
+            message: error.message,
+            fullError: error
+        });
+        
+        // Clear the flag on error
+        localStorage.removeItem('googleSignInInitiated');
+        
+        // Show error to user
+        let errorMessage = 'Failed to sign in with Google. Please try again.';
+        if (error.code === 'auth/account-exists-with-different-credential') {
+            errorMessage = 'An account already exists with the same email but different sign-in method.';
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+        
         showError({
             title: 'Google Sign-In Failed',
-            message: error.message || 'Failed to complete Google Sign-In. Please try again.'
+            message: errorMessage
         });
     }
 };
 
-// Initialize the auth page
-document.addEventListener('DOMContentLoaded', () => {
+// Check for successful Google Sign-In on page load
+document.addEventListener('DOMContentLoaded', async () => {
     console.log('DOM fully loaded, initializing auth...');
     
-    // Call the redirect result handler
-    handleRedirectResult();
-
-    // Initialize session management
-    const cleanup = initSession();
-    
-    // Add form event listeners
-    if (signupForm) {
-        signupForm.addEventListener('submit', handleSignup);
-    }
-    
-    if (loginForm) {
-        loginForm.addEventListener('submit', handleLogin);
-    }
-    
-    if (forgotPasswordForm) {
-        forgotPasswordForm.addEventListener('submit', handlePasswordReset);
-    }
-
-    // Add Google Sign-In event listener
-    const googleSignInBtn = document.getElementById('googleSignInBtn');
-    if (googleSignInBtn) {
-        googleSignInBtn.addEventListener('click', async (e) => {
-            console.log('Google sign-in button clicked');
-            e.preventDefault();
+    try {
+        // Check if this is a redirect back from Google Sign-In
+        const signInInitiated = localStorage.getItem('googleSignInInitiated');
+        
+        if (signInInitiated) {
+            console.log('Google Sign-In was initiated, checking auth state...');
+            // Wait for auth state to be ready
+            await auth.authStateReady();
             
-            const originalText = googleSignInBtn.innerHTML;
-            
-            try {
-                // Show loading state
-                googleSignInBtn.disabled = true;
-                googleSignInBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
-                
-                // Handle Google Sign-In
-                await handleGoogleSignIn();
-                
-                // If we get here, it's not a redirect flow
-                console.log('Sign-in process completed without redirect');
-            } catch (error) {
-                console.error('Google Sign-In Error:', error);
-                // Reset button state
-                googleSignInBtn.disabled = false;
-                googleSignInBtn.innerHTML = originalText;
-                
-                // Show error message to user
-                showError({
-                    title: 'Google Sign-In Failed',
-                    message: error.message || 'Failed to sign in with Google. Please try again.'
-                });
+            const user = auth.currentUser;
+            if (user) {
+                console.log('User is already signed in:', user.email);
+                // Store user data
+                const userData = {
+                    uid: user.uid,
+                    email: user.email,
+                    displayName: user.displayName,
+                    emailVerified: user.emailVerified,
+                    photoURL: user.photoURL
+                };
+                localStorage.setItem('user', JSON.stringify(userData));
+                window.location.href = 'dashboard.html';
+                return;
             }
-        });
-    }
+            
+            // Clear the flag if no user is found
+            localStorage.removeItem('googleSignInInitiated');
+        }
+        
+        // Initialize session management
+        const cleanup = initSession();
+        
+        // Add form event listeners
+        if (signupForm) {
+            signupForm.addEventListener('submit', handleSignup);
+        }
+        
+        if (loginForm) {
+            loginForm.addEventListener('submit', handleLogin);
+        }
+        
+        if (forgotPasswordForm) {
+            forgotPasswordForm.addEventListener('submit', handlePasswordReset);
+        }
 
-    // Modal elements
-    const signupModal = document.getElementById('signupModal');
-    const forgotPasswordModal = document.getElementById('forgotPasswordModal');
-    const closeSignupModal = document.getElementById('closeSignupModal');
-    const closeForgotPassword = document.getElementById('closeForgotPassword');
-    const createAccountLink = document.getElementById('createAccount');
-    const forgotPasswordLink = document.getElementById('forgotPasswordLink');
-    const backToLogin = document.getElementById('backToLogin');
-    
-    // Function to show modal
-    const showModal = (modal) => {
-        if (modal) {
-            modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        }
-    };
-    
-    // Function to hide modal
-    const hideModal = (modal) => {
-        if (modal) {
-            modal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }
-    };
-    
-    // Close modals when clicking the close button
-    if (closeSignupModal) {
-        closeSignupModal.addEventListener('click', () => hideModal(signupModal));
-    }
-    
-    if (closeForgotPassword) {
-        closeForgotPassword.addEventListener('click', () => hideModal(forgotPasswordModal));
-    }
-    
-    // Show modals when clicking on links
-    if (createAccountLink) {
-        createAccountLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            hideModal(forgotPasswordModal);
-            showModal(signupModal);
-        });
-    }
-    
-    if (forgotPasswordLink) {
-        forgotPasswordLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            hideModal(signupModal);
-            showModal(forgotPasswordModal);
-        });
-    }
-    
-    if (backToLogin) {
-        backToLogin.addEventListener('click', (e) => {
-            e.preventDefault();
-            hideModal(forgotPasswordModal);
-        });
-    }
-    
-    // Close modal when clicking outside the modal content
-    window.addEventListener('click', (e) => {
-        if (e.target === signupModal) {
-            hideModal(signupModal);
-        } else if (e.target === forgotPasswordModal) {
-            hideModal(forgotPasswordModal);
-        }
-    });
-    
-    // Tab switching (for forms within modals)
-    const tabLinks = document.querySelectorAll('.tab-link');
-    tabLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const target = e.target.getAttribute('data-tab');
-            
-            // Update active tab
-            document.querySelectorAll('.tab-link').forEach(tab => tab.classList.remove('active'));
-            e.target.classList.add('active');
-            
-            // Show target tab content
-            document.querySelectorAll('.tab-pane').forEach(pane => {
-                pane.style.display = 'none';
-            });
-            if (target) {
-                const targetPane = document.getElementById(target);
-                if (targetPane) {
-                    targetPane.style.display = 'block';
+        // Add Google Sign-In event listener
+        const googleSignInBtn = document.getElementById('googleSignInBtn');
+        if (googleSignInBtn) {
+            googleSignInBtn.addEventListener('click', async (e) => {
+                console.log('Google sign-in button clicked');
+                e.preventDefault();
+                
+                const originalText = googleSignInBtn.innerHTML;
+                
+                try {
+                    // Show loading state
+                    googleSignInBtn.disabled = true;
+                    googleSignInBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
+                    
+                    // Handle Google Sign-In
+                    await handleGoogleSignIn();
+                    
+                    // If we get here, it's not a redirect flow
+                    console.log('Sign-in process completed without redirect');
+                } catch (error) {
+                    console.error('Google Sign-In Error:', error);
+                    // Reset button state
+                    googleSignInBtn.disabled = false;
+                    googleSignInBtn.innerHTML = originalText;
+                    
+                    // Show error message to user
+                    showError({
+                        title: 'Google Sign-In Failed',
+                        message: error.message || 'Failed to sign in with Google. Please try again.'
+                    });
                 }
+            });
+        }
+
+        // Modal elements
+        const signupModal = document.getElementById('signupModal');
+        const forgotPasswordModal = document.getElementById('forgotPasswordModal');
+        const closeSignupModal = document.getElementById('closeSignupModal');
+        const closeForgotPassword = document.getElementById('closeForgotPassword');
+        const createAccountLink = document.getElementById('createAccount');
+        const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+        const backToLogin = document.getElementById('backToLogin');
+        
+        // Function to show modal
+        const showModal = (modal) => {
+            if (modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        };
+        
+        // Function to hide modal
+        const hideModal = (modal) => {
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        };
+        
+        // Close modals when clicking the close button
+        if (closeSignupModal) {
+            closeSignupModal.addEventListener('click', () => hideModal(signupModal));
+        }
+        
+        if (closeForgotPassword) {
+            closeForgotPassword.addEventListener('click', () => hideModal(forgotPasswordModal));
+        }
+        
+        // Show modals when clicking on links
+        if (createAccountLink) {
+            createAccountLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                hideModal(forgotPasswordModal);
+                showModal(signupModal);
+            });
+        }
+        
+        if (forgotPasswordLink) {
+            forgotPasswordLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                hideModal(signupModal);
+                showModal(forgotPasswordModal);
+            });
+        }
+        
+        if (backToLogin) {
+            backToLogin.addEventListener('click', (e) => {
+                e.preventDefault();
+                hideModal(forgotPasswordModal);
+            });
+        }
+        
+        // Close modal when clicking outside the modal content
+        window.addEventListener('click', (e) => {
+            if (e.target === signupModal) {
+                hideModal(signupModal);
+            } else if (e.target === forgotPasswordModal) {
+                hideModal(forgotPasswordModal);
             }
         });
-    });
-    
-    // Cleanup on unmount
-    return () => {
-        if (cleanup && typeof cleanup === 'function') {
-            cleanup();
-        }
-    };
+        
+        // Tab switching (for forms within modals)
+        const tabLinks = document.querySelectorAll('.tab-link');
+        tabLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = e.target.getAttribute('data-tab');
+                
+                // Update active tab
+                document.querySelectorAll('.tab-link').forEach(tab => tab.classList.remove('active'));
+                e.target.classList.add('active');
+                
+                // Show target tab content
+                document.querySelectorAll('.tab-pane').forEach(pane => {
+                    pane.style.display = 'none';
+                });
+                if (target) {
+                    const targetPane = document.getElementById(target);
+                    if (targetPane) {
+                        targetPane.style.display = 'block';
+                    }
+                }
+            });
+        });
+        
+        // Cleanup on unmount
+        return () => {
+            if (cleanup && typeof cleanup === 'function') {
+                cleanup();
+            }
+        };
+    } catch (error) {
+        console.error('Initialization error:', error);
+        localStorage.removeItem('googleSignInInitiated');
+    }
 });
