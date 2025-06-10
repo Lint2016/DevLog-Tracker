@@ -13,6 +13,8 @@ import {
     updateDoc,
     setDoc,
     onSnapshot,
+    signInWithPopup,
+    GoogleAuthProvider,
     EmailAuthProvider,
     reauthenticateWithCredential,
     updatePassword
@@ -1158,6 +1160,43 @@ window.checkProjectStatus = async function() {
 async function initDashboard() {
     console.log('A. Starting dashboard initialization...');
     
+    // Check for welcome message in URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const showWelcome = urlParams.get('welcome');
+  console.log('URL Parameters:',{
+    showWelcome,
+    name: urlParams.get('name'),
+    email: urlParams.get('email')
+  })
+    
+    
+    if (showWelcome === 'true') {
+        const userName = decodeURIComponent(urlParams.get('name') || 'there');
+        const userEmail = decodeURIComponent(urlParams.get('email') || '');
+        
+        console.log('Showing welcome message for:', { userName, userEmail });
+        
+        // Clean up the URL without page refresh
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+        
+        // Use setTimeout to ensure the page is fully loaded
+        setTimeout(() => {
+            console.log('Displaying welcome message...');
+            Swal.fire({
+                icon: 'success',
+                title: 'Account Created!',
+                html: `Welcome, ${userName}!<br><br>
+                      We've sent a verification email to ${userEmail}.<br>
+                      Please verify your email to continue.`,
+                confirmButtonColor: '#3085d6',
+                allowOutsideClick: false
+            }).then(() => {
+                console.log('Welcome message closed');
+            });
+        }, 500);
+    }
+    
     try {
         onAuthStateChanged(auth, async (user) => {
             console.log('B. Auth state changed, user:', user ? user.uid : 'No user');
@@ -1342,7 +1381,7 @@ if (closeProfileModal) {
 if (closePasswordModal) {
     closePasswordModal.addEventListener('click', () => closeModal(changePasswordModal));
 }
-    
+
 if (cancelPasswordBtn) {
     cancelPasswordBtn.addEventListener('click', () => closeModal(changePasswordModal));
 }
@@ -1507,6 +1546,8 @@ if (updatePasswordBtn) {
 }
 
 // Handle account deletion
+
+// In dashboard.js, find the delete account click handler and modify it like this:
 if (deleteAccountBtn) {
     deleteAccountBtn.addEventListener('click', async () => {
         console.log('delete button was clicked');
@@ -1527,42 +1568,67 @@ if (deleteAccountBtn) {
                 const user = auth.currentUser;
                 if (!user) return;
 
-                // Show password prompt
-                const { value: password } = await Swal.fire({
-                    title: 'Confirm Your Password',
-                    input: 'password',
-                    inputLabel: 'Enter your password to confirm account deletion',
-                    inputPlaceholder: 'Enter your password',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    inputValidator: (value) => {
-                        if (!value) {
-                            return 'Please enter your password';
-                        }
+                // Check provider to determine reauthentication method
+                const providerData = user.providerData[0];
+                
+                if (providerData.providerId === 'google.com') {
+                    // For Google sign-in, use Google Auth Provider
+                    const provider = new GoogleAuthProvider();
+                    try {
+                        // Add prompt to force account selection
+                        provider.setCustomParameters({
+                            prompt: 'select_account'
+                        });
+                        
+                        // Sign in with popup
+                        const result = await signInWithPopup(auth, provider);
+                        
+                        // Get the credential from the result
+                        const credential = GoogleAuthProvider.credentialFromResult(result);
+                        
+                        // Reauthenticate with the credential
+                        await reauthenticateWithCredential(user, credential);
+                    } catch (error) {
+                        console.error('Google reauthentication failed:', error);
+                        throw new Error('Google reauthentication failed. Please try again.');
                     }
-                });
+                } else {
+                    // For email/password sign-in, prompt for password
+                    const { value: password } = await Swal.fire({
+                        title: 'Confirm Your Password',
+                        input: 'password',
+                        inputLabel: 'Enter your password to confirm account deletion',
+                        inputPlaceholder: 'Enter your password',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        inputValidator: (value) => {
+                            if (!value) {
+                                return 'Please enter your password';
+                            }
+                        }
+                    });
 
-                if (password) {
-                    // Reauthenticate user
+                    if (!password) return; // User cancelled the password prompt
+                    
                     const credential = EmailAuthProvider.credential(user.email, password);
                     await reauthenticateWithCredential(user, credential);
-                    
-                    // Delete user account
-                    await user.delete();
-                    
-                    // Clear local storage
-                    localStorage.removeItem('user');
-                    
-                    // Redirect to auth page
-                    window.location.href = 'auth.html';
-                    
-                    Swal.fire(
-                        'Deleted!',
-                        'Your account has been permanently deleted.',
-                        'success'
-                    );
                 }
+
+                // If we got here, reauthentication was successful
+                await user.delete();
+                
+                // Clear local storage
+                localStorage.removeItem('user');
+                
+                // Redirect to auth page
+                window.location.href = 'auth.html';
+                
+                await Swal.fire(
+                    'Deleted!',
+                    'Your account has been permanently deleted.',
+                    'success'
+                );
             } catch (error) {
                 console.error('Error deleting account:', error);
                 showError({
@@ -1996,4 +2062,4 @@ window.addEventListener('click', (e) => {
     if (e.target === changePasswordModal) {
         closeChangePasswordModal();
     }
-});ly 
+});

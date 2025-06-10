@@ -102,21 +102,16 @@ const handleSignup = async (e) => {
         // Send verification email
         await sendEmailVerification(currentUser);
 
-        // Show success message
-        await Swal.fire({
-            icon: 'success',
-            title: 'Account Created!',
-            html: `Welcome, ${sanitizedDisplayName}!<br><br>
-                  We've sent a verification email to ${sanitizedEmail}.<br>
-                  Please verify your email to continue.`,
-            confirmButtonColor: '#3085d6'
-        });
-
         // Reset form
         if (signupForm) signupForm.reset();
         
-        // Redirect to dashboard
-        window.location.href = 'dashboard.html';
+        // Redirect to dashboard with welcome message in URL
+        const welcomeParams = new URLSearchParams({
+            welcome: 'true',
+            name: encodeURIComponent(sanitizedDisplayName),
+            email: encodeURIComponent(sanitizedEmail)
+        });
+        window.location.href = `dashboard.html?${welcomeParams.toString()}`;
 
     } catch (error) {
         console.error('Signup error:', error);
