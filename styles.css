@@ -42,7 +42,7 @@ position: fixed;
 
 /* Small screens (phones) */
 @media (max-width: 480px) {
- 
+  
   #signupModal  {
   position: fixed;
   top: 0;

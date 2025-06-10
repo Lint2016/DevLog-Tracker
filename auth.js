@@ -189,9 +189,9 @@ const handlePasswordReset = async (e) => {
         document.getElementById('login-tab').click();
         
     } catch (error) {
-        console.error('Password reset error:', error);
-        const authError = handleAuthError(error);
-        showError(authError);
+       // console.error('Password reset error:', error);
+       // const authError = handleAuthError(error);
+       // showError(authError);
     }
 };
 

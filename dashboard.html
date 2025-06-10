@@ -1,728 +1,767 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DevLog Tracker - Dashboard</title>
-    <link rel="shortcut icon" href="images/learn.jpg" type="image/x-icon">
+    <link rel="shortcut icon" href="images/learn.jpg" type="image/x-icon" />
     <!-- SweetAlert2 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <style>
-        /* Consolidated Dashboard Styles */
-        :root {
-            --primary: #3498db;
-            --secondary: #2c3e50;
-            --success: #2ecc71;
-            --light: #f8f9fa;
-            --dark: #1a1a2e;
-        }
-        
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a2a6c, var(--dark));
-            background-attachment: fixed;
-            color: var(--light);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            margin: 0;
-            padding: 0;
-            overflow-x: hidden; /* Prevent horizontal scrollbar if something still overflows */
-        }
+      /* Consolidated Dashboard Styles */
+      :root {
+        --primary: #3498db;
+        --secondary: #2c3e50;
+        --success: #2ecc71;
+        --light: #f8f9fa;
+        --dark: #1a1a2e;
+      }
 
-        * { /* Global box-sizing reset is often helpful */
-            box-sizing: border-box;
-        }
+      body {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, sans-serif;
+        background: linear-gradient(135deg, #1a2a6c, var(--dark));
+        background-attachment: fixed;
+        color: var(--light);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden; /* Prevent horizontal scrollbar if something still overflows */
+      }
 
-        .dashboard-header {
-            background: rgba(0, 0, 0, 0.85);
-            padding: 0.1rem 0.1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-        
-        .dashboard-header h1 {
-            color: var(--primary);
-            font-size: 1.8rem;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .dashboard-header h1 i {
-            color: var(--success);
-        }
-        
+      * {
+        /* Global box-sizing reset is often helpful */
+        box-sizing: border-box;
+      }
+
+      .dashboard-header {
+        background: rgba(0, 0, 0, 0.85);
+        padding: 0.1rem 0.1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: fixed;
+        width: 100%;
+        top: 0;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      .dashboard-header h1 {
+        color: var(--primary);
+        font-size: 1.8rem;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .dashboard-header h1 i {
+        color: var(--success);
+      }
+
+      .dashboard-nav ul {
+        display: flex;
+        gap: 1.2rem;
+        padding: 0.3rem;
+        list-style: none;
+      }
+
+      .dashboard-nav a {
+        color: white;
+        text-decoration: none;
+        padding: 0.7rem 1.5rem;
+        border-radius: 30px;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .dashboard-nav a:hover {
+        background: rgba(52, 152, 219, 0.3);
+        transform: translateY(-2px);
+      }
+
+      /* Mobile Menu Styles */
+      .mobile-menu-button {
+        display: none; /* Hidden by default, shown on small screens */
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.8rem;
+        cursor: pointer;
+        padding: 0.5rem;
+      }
+
+      @media (max-width: 768px) {
+        /* md breakpoint equivalent */
         .dashboard-nav ul {
-            display: flex;
-            gap: 1.2rem;
-            padding: 0.3rem;
-            list-style: none;
+          display: none; /* Hide nav links by default on mobile */
+          flex-direction: column;
+          position: absolute;
+          top: 60px; /* Adjust based on actual header height */
+          right: 19%; /* Shift panel left, away from the button (approx button width) */
+          left: auto;
+          width: 250px; /* Adjust width as needed, e.g., 280px - 50px offset */
+          max-height: calc(100vh - 70px);
+          overflow-y: auto;
+          background: rgba(10, 25, 47, 0.97);
+          padding: 0.5rem 0; /* Vertical padding, horizontal handled by link padding */
+          box-shadow: -5px 5px 15px rgba(0, 0, 0, 0.3);
+          border-radius: 8px; /* Apply to all corners or just specific ones */
+          z-index: 1000;
         }
-        
+        .dashboard-nav ul.is-active {
+          display: flex; /* Show when active */
+        }
+        .dashboard-nav li {
+          width: 100%;
+          /* text-align: center; -- Removing this, will default to left or be set on 'a' */
+        }
         .dashboard-nav a {
-            color: white;
-            text-decoration: none;
-            padding: 0.7rem 1.5rem;
-            border-radius: 30px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            display: flex;
-            align-items: center;
-            gap: 8px;
+          display: block;
+          padding: 0.5rem 1.2rem; /* Adjusted padding */
+          border-radius: 0;
+          /* border-bottom: 1px solid rgba(255, 255, 255, 0.05); Removed border */
+          text-align: left;
+          font-size: 0.9rem;
+          color: #e0e0e0;
+          text-decoration: none;
+          background: transparent; /* Ensure no default background */
         }
-        
+        .dashboard-nav li:last-child a {
+          border-bottom: none; /* Still relevant if borders were on li instead */
+        }
         .dashboard-nav a:hover {
-            background: rgba(52, 152, 219, 0.3);
-            transform: translateY(-2px);
+          background: rgba(
+            52,
+            152,
+            219,
+            0.1
+          ); /* Even more subtle hover background */
+          color: #ffffff;
+          text-decoration: underline; /* Add underline on hover */
         }
-
-        /* Mobile Menu Styles */
         .mobile-menu-button {
-            display: none; /* Hidden by default, shown on small screens */
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.8rem;
-            cursor: pointer;
-            padding: 0.5rem;
+          display: block; /* Show hamburger on mobile */
+          position: relative; /* Or absolute/fixed depending on exact header structure if issues persist */
+          z-index: 1001; /* Higher than the menu panel (which is 1000) */
         }
-
-        @media (max-width: 768px) { /* md breakpoint equivalent */
-            .dashboard-nav ul {
-                display: none; /* Hide nav links by default on mobile */
-                flex-direction: column;
-                position: absolute;
-                top: 60px; /* Adjust based on actual header height */
-                right: 19%; /* Shift panel left, away from the button (approx button width) */
-                left: auto;
-                width: 250px; /* Adjust width as needed, e.g., 280px - 50px offset */
-                max-height: calc(100vh - 70px);
-                overflow-y: auto;
-                background: rgba(10, 25, 47, 0.97);
-                padding: 0.5rem 0; /* Vertical padding, horizontal handled by link padding */
-                box-shadow: -5px 5px 15px rgba(0,0,0,0.3);
-                border-radius: 8px; /* Apply to all corners or just specific ones */
-                z-index: 1000;
-            }
-            .dashboard-nav ul.is-active {
-                display: flex; /* Show when active */
-            }
-            .dashboard-nav li {
-                width: 100%;
-                /* text-align: center; -- Removing this, will default to left or be set on 'a' */
-            }
-            .dashboard-nav a {
-                display: block;
-                padding: 0.5rem 1.2rem; /* Adjusted padding */
-                border-radius: 0;
-                /* border-bottom: 1px solid rgba(255, 255, 255, 0.05); Removed border */
-                text-align: left;
-                font-size: 0.9rem;
-                color: #e0e0e0;
-                text-decoration: none;
-                background: transparent; /* Ensure no default background */
-            }
-            .dashboard-nav li:last-child a {
-                border-bottom: none; /* Still relevant if borders were on li instead */
-            }
-            .dashboard-nav a:hover {
-                background: rgba(52, 152, 219, 0.1); /* Even more subtle hover background */
-                color: #ffffff;
-                text-decoration: underline; /* Add underline on hover */
-            }
-            .mobile-menu-button {
-                display: block; /* Show hamburger on mobile */
-                position: relative; /* Or absolute/fixed depending on exact header structure if issues persist */
-                z-index: 1001; /* Higher than the menu panel (which is 1000) */
-            }
-            .dashboard-main {
-                padding: 0 1rem; /* Reduce horizontal padding */
-                margin-top: 80px; /* Adjust top margin to clear fixed header */
-                width: 100%; /* Ensure it takes full available width */
-                box-sizing: border-box; /* Explicitly set for safety */
-            }
-
-            .user-info {
-                flex-direction: column; /* Stack items vertically */
-                align-items: flex-start; /* Align items to the start */
-                padding: 1rem; /* Adjust padding for mobile if needed */
-            }
-
-            .user-info p {
-                margin-bottom: 1rem; /* Space between text and button when stacked */
-            }
-
-            .projects-grid {
-                grid-template-columns: 1fr; /* Stack project cards in a single column */
-                gap: 1rem; /* Optional: adjust gap for single column layout */
-            }
-        }
-
         .dashboard-main {
-            flex: 1;
-            max-width: 1200px;
-            width: 100%;
-            margin: 100px auto 2rem;
-            padding: 0 1.5rem;
-            box-sizing: border-box; /* Explicitly set for safety */
+          padding: 0 1rem; /* Reduce horizontal padding */
+          margin-top: 80px; /* Adjust top margin to clear fixed header */
+          width: 100%; /* Ensure it takes full available width */
+          box-sizing: border-box; /* Explicitly set for safety */
         }
 
         .user-info {
-            background: rgba(0, 0, 0, 0.5);
-            padding: 1.5rem;
-            border-radius: 10px;
-            margin-bottom: 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+          flex-direction: column; /* Stack items vertically */
+          align-items: flex-start; /* Align items to the start */
+          padding: 1rem; /* Adjust padding for mobile if needed */
         }
 
         .user-info p {
-            font-size: 1.2rem;
-            margin-bottom: 0.5rem; /* Add some space if stacking */
-        }
-
-        .user-info span {
-            color: var(--success);
-            font-weight: bold;
-        }
-
-        .section-title {
-            color: white;
-            margin: 2rem 0 1.5rem;
-            font-size: 1.8rem;
-            position: relative;
-            padding-bottom: 0.5rem;
-        }
-
-        .section-title::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 60px;
-            height: 3px;
-            background: var(--primary);
-            border-radius: 3px;
+          margin-bottom: 1rem; /* Space between text and button when stacked */
         }
 
         .projects-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-top: 1.5rem;
+          grid-template-columns: 1fr; /* Stack project cards in a single column */
+          gap: 1rem; /* Optional: adjust gap for single column layout */
+        }
+      }
+
+      .dashboard-main {
+        flex: 1;
+        max-width: 1200px;
+        width: 100%;
+        margin: 100px auto 2rem;
+        padding: 0 1.5rem;
+        box-sizing: border-box; /* Explicitly set for safety */
+      }
+
+      .user-info {
+        background: rgba(0, 0, 0, 0.5);
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .user-info p {
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem; /* Add some space if stacking */
+      }
+
+      .user-info span {
+        color: var(--success);
+        font-weight: bold;
+      }
+
+      .section-title {
+        color: white;
+        margin: 2rem 0 1.5rem;
+        font-size: 1.8rem;
+        position: relative;
+        padding-bottom: 0.5rem;
+      }
+
+      .section-title::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 60px;
+        height: 3px;
+        background: var(--primary);
+        border-radius: 3px;
+      }
+
+      .projects-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+      }
+
+      .project-card {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .project-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+      }
+
+      .project-card-header {
+        padding: 1.25rem;
+        background: rgba(0, 0, 0, 0.2);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        position: relative;
+      }
+
+      .project-title {
+        font-size: 1.25rem;
+        margin: 0 0 0.5rem 0;
+        color: var(--primary);
+        word-break: break-word;
+      }
+
+      .project-category {
+        display: inline-block;
+        background: rgba(52, 152, 219, 0.2);
+        color: var(--primary);
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+
+      .project-card-body {
+        padding: 1.25rem;
+      }
+
+      .project-description {
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 1rem;
+        line-height: 1.5;
+      }
+
+      .project-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.6);
+      }
+
+      .project-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .btn-edit,
+      .btn-delete {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .btn-edit {
+        background: rgba(52, 152, 219, 0.2);
+        color: var(--primary);
+      }
+
+      .btn-edit:hover {
+        background: rgba(52, 152, 219, 0.3);
+      }
+
+      .btn-delete {
+        background: rgba(231, 76, 60, 0.2);
+        color: #e74c3c;
+      }
+
+      .btn-delete:hover {
+        background: rgba(231, 76, 60, 0.3);
+      }
+
+      .project-date {
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      /* Edit Mode */
+      .project-card.edit-mode .project-title,
+      .project-card.edit-mode .project-description {
+        width: 100%;
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        color: white;
+      }
+
+      .project-card.edit-mode .project-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+      }
+
+      .project-card.edit-mode .project-category {
+        background: transparent;
+        padding: 0.25rem 0;
+        margin-bottom: 0.5rem;
+      }
+
+      .project-card.edit-mode .project-actions {
+        justify-content: flex-end;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .projects-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Responsive Styles */
+      @media (max-width: 768px) {
+        
+        .dashboard-header {
+          flex-direction: column;
+          gap: 1rem;
+          padding: 1rem;
         }
 
-        .project-card {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .dashboard-main {
+          padding-top: 140px;
         }
 
-        .project-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        .projects-grid {
+          grid-template-columns: 1fr;
         }
 
-        .project-card-header {
-            padding: 1.25rem;
-            background: rgba(0, 0, 0, 0.2);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            position: relative;
+        .user-info {
+          flex-direction: column;
+          text-align: center;
+          gap: 1rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .dashboard-header h1 {
+          font-size: 1.5rem;
+        }
+        .dashboard-main {
+          padding-top: 7rem;
         }
 
-        .project-title {
-            font-size: 1.25rem;
-            margin: 0 0 0.5rem 0;
-            color: var(--primary);
-            word-break: break-word;
+        .dashboard-nav a {
+          padding: 0.6rem 1rem;
+          font-size: 0.9rem;
+          width: 100%;
         }
 
-        .project-category {
-            display: inline-block;
-            background: rgba(52, 152, 219, 0.2);
-            color: var(--primary);
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
+        .section-title {
+          font-size: 1.5rem;
         }
 
-        .project-card-body {
-            padding: 1.25rem;
+        .card-footer {
+          flex-direction: column;
+          gap: 0.5rem;
         }
+      }
 
-        .project-description {
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 1rem;
-            line-height: 1.5;
-        }
+      /* Modal Styles */
+      #editProjectModal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+        overflow-y: auto;
+        padding: 20px 0;
+      }
 
-        .project-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.6);
-        }
+      .modal-content {
+        background: #1e293b;
+        margin: 2% auto;
+        padding: 25px;
+        border-radius: 12px;
+        max-width: 90%;
+        width: 600px;
+        position: relative;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        color: #f8fafc;
+      }
 
-        .project-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
+      .modal-header {
+        padding: 0 0 15px 0;
+        margin: 0 0 20px 0;
+        border-bottom: 1px solid #334155;
+        position: sticky;
+        top: 0;
+        background: #1e293b;
+        z-index: 10;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
 
-        .btn-edit, .btn-delete {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+      .modal-header h3 {
+        margin: 0;
+        color: #f8fafc;
+        font-size: 1.5em;
+      }
 
-        .btn-edit {
-            background: rgba(52, 152, 219, 0.2);
-            color: var(--primary);
-        }
+      .close-btn {
+        font-size: 1.8em;
+        cursor: pointer;
+        color: #94a3b8;
+        transition: color 0.2s;
+        background: none;
+        border: none;
+        padding: 0 8px;
+        line-height: 1;
+      }
 
-        .btn-edit:hover {
-            background: rgba(52, 152, 219, 0.3);
-        }
+      .close-btn:hover {
+        color: #f8fafc;
+      }
 
-        .btn-delete {
-            background: rgba(231, 76, 60, 0.2);
-            color: #e74c3c;
-        }
+      .modal-body {
+        overflow-y: auto;
+        max-height: calc(90vh - 180px);
+        padding: 0 5px 10px 0;
+        margin-right: -5px;
+      }
 
-        .btn-delete:hover {
-            background: rgba(231, 76, 60, 0.3);
-        }
+      .form-group {
+        margin-bottom: 20px;
+      }
 
-        .project-date {
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.5);
-        }
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #cbd5e1;
+        font-weight: 500;
+      }
 
-        /* Edit Mode */
-        .project-card.edit-mode .project-title,
-        .project-card.edit-mode .project-description {
-            width: 100%;
-            padding: 0.5rem;
-            margin-bottom: 0.5rem;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-            color: white;
-        }
+      .form-group input[type="text"],
+      .form-group select,
+      .form-group textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #334155;
+        border-radius: 6px;
+        background-color: #1e293b;
+        color: #f8fafc;
+        font-size: 1em;
+        transition: border-color 0.3s, box-shadow 0.3s;
+      }
 
-        .project-card.edit-mode .project-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-        }
+      .form-group textarea {
+        min-height: 100px;
+        resize: vertical;
+      }
 
-        .project-card.edit-mode .project-category {
-            background: transparent;
-            padding: 0.25rem 0;
-            margin-bottom: 0.5rem;
-        }
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: #60a5fa;
+        box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
+      }
 
-        .project-card.edit-mode .project-actions {
-            justify-content: flex-end;
-        }
+      .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #334155;
+        position: sticky;
+        bottom: 0;
+        background: #1e293b;
+        z-index: 10;
+        margin: 20px -25px -25px -25px;
+        padding: 20px 25px;
+      }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .projects-grid {
-                grid-template-columns: 1fr;
-            }
-        }
+      .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.95em;
+        font-weight: 500;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s;
+      }
 
-        /* Responsive Styles */
-        @media (max-width: 768px) {
-            .dashboard-header {
-                flex-direction: column;
-                gap: 1rem;
-                padding: 1rem;
-            }
-            
-            .dashboard-main {
-                margin-top: 140px;
-            }
-            
-            .projects-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .user-info {
-                flex-direction: column;
-                text-align: center;
-                gap: 1rem;
-            }
-        }
+      .btn i {
+        font-size: 0.9em;
+      }
 
-        @media (max-width: 480px) {
-            .dashboard-header h1 {
-                font-size: 1.5rem;
-            }
-            
-            .dashboard-nav a {
-                padding: 0.6rem 1rem;
-                font-size: 0.9rem;
-                width: 100%;
-            }
-            
-            .section-title {
-                font-size: 1.5rem;
-            }
-            
-            .card-footer {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-        }
+      .btn-primary {
+        background: #4a6cf7;
+        color: white;
+      }
 
-        /* Modal Styles */
-        #editProjectModal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            overflow-y: auto;
-            padding: 20px 0;
-        }
+      .btn-primary:hover {
+        background: #3a5bd9;
+        transform: translateY(-1px);
+      }
 
+      .btn-secondary {
+        background: #334155;
+        color: #e2e8f0;
+      }
+
+      .btn-secondary:hover {
+        background: #475569;
+        color: #f8fafc;
+      }
+
+      .btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none !important;
+      }
+
+      /* Scrollbar Styles */
+      .modal-body::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      .modal-body::-webkit-scrollbar-track {
+        background: #1e293b;
+        border-radius: 4px;
+      }
+
+      .modal-body::-webkit-scrollbar-thumb {
+        background: #4b5563;
+        border-radius: 4px;
+      }
+
+      .modal-body::-webkit-scrollbar-thumb:hover {
+        background: #6b7280;
+      }
+
+      @media (max-width: 768px) {
         .modal-content {
-            background: #1e293b;
-            margin: 2% auto;
-            padding: 25px;
-            border-radius: 12px;
-            max-width: 90%;
-            width: 600px;
-            position: relative;
-            max-height: 90vh;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            color: #f8fafc;
-        }
-
-        .modal-header {
-            padding: 0 0 15px 0;
-            margin: 0 0 20px 0;
-            border-bottom: 1px solid #334155;
-            position: sticky;
-            top: 0;
-            background: #1e293b;
-            z-index: 10;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-header h3 {
-            margin: 0;
-            color: #f8fafc;
-            font-size: 1.5em;
-        }
-
-        .close-btn {
-            font-size: 1.8em;
-            cursor: pointer;
-            color: #94a3b8;
-            transition: color 0.2s;
-            background: none;
-            border: none;
-            padding: 0 8px;
-            line-height: 1;
-        }
-
-        .close-btn:hover {
-            color: #f8fafc;
-        }
-
-        .modal-body {
-            overflow-y: auto;
-            max-height: calc(90vh - 180px);
-            padding: 0 5px 10px 0;
-            margin-right: -5px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #cbd5e1;
-            font-weight: 500;
-        }
-
-        .form-group input[type="text"],
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #334155;
-            border-radius: 6px;
-            background-color: #1e293b;
-            color: #f8fafc;
-            font-size: 1em;
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-
-        .form-group textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #60a5fa;
-            box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
+          width: 95%;
+          padding: 20px;
         }
 
         .form-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #334155;
-            position: sticky;
-            bottom: 0;
-            background: #1e293b;
-            z-index: 10;
-            margin: 20px -25px -25px -25px;
-            padding: 20px 25px;
+          flex-direction: column;
+          gap: 10px;
         }
 
         .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.95em;
-            font-weight: 500;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.2s;
+          width: 100%;
         }
-
-        .btn i {
-            font-size: 0.9em;
-        }
-
-        .btn-primary {
-            background: #4a6cf7;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #3a5bd9;
-            transform: translateY(-1px);
-        }
-
-        .btn-secondary {
-            background: #334155;
-            color: #e2e8f0;
-        }
-
-        .btn-secondary:hover {
-            background: #475569;
-            color: #f8fafc;
-        }
-
-        .btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-
-        /* Scrollbar Styles */
-        .modal-body::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .modal-body::-webkit-scrollbar-track {
-            background: #1e293b;
-            border-radius: 4px;
-        }
-
-        .modal-body::-webkit-scrollbar-thumb {
-            background: #4b5563;
-            border-radius: 4px;
-        }
-
-        .modal-body::-webkit-scrollbar-thumb:hover {
-            background: #6b7280;
-        }
-
-        @media (max-width: 768px) {
-            .modal-content {
-                width: 95%;
-                padding: 20px;
-            }
-            
-            .form-actions {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .btn {
-                width: 100%;
-            }
-        }
+      }
     </style>
     <style>
-        /* Add this to your existing styles */
-        /* New Project Button Styles */
-        .btn-new-project {
-            background: linear-gradient(135deg, #4CAF50, #45a049) !important;
-            color: white !important;
-            border: none !important;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease !important;
-            font-weight: 600 !important;
-            padding: 0.5rem 1.25rem !important;
-        }
-        
-        .btn-new-project:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            background: linear-gradient(135deg, #45a049, #3d8b40) !important;
-        }
-        
-        .btn-new-project i {
-            margin-right: 6px;
-        }
+      /* Add this to your existing styles */
+      /* New Project Button Styles */
+      .btn-new-project {
+        background: linear-gradient(135deg, #4caf50, #45a049) !important;
+        color: white !important;
+        border: none !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease !important;
+        font-weight: 600 !important;
+        padding: 0.5rem 1.25rem !important;
+      }
 
-        /* No Projects Styles */
-        .no-projects {
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 4rem 2rem;
-            color: #9ca3af;
-        }
-        
-        .no-projects i {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            color: #4b5563;
-        }
-        
-        .no-projects p {
-            margin-bottom: 1.5rem;
-            font-size: 1.1rem;
-        }
-        
-        /* Stats Section Styles */
-        .stats-container {
-            display: flex;
-            gap: 1.5rem;
-            padding: 1.5rem;
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 10px;
-            margin-bottom: 2rem;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-        
-        .stat-card {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 1.5rem;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            flex: 1;
-        }
-        
-        .stat-card i {
-            font-size: 2rem;
-            color: var(--primary);
-        }
-        
-        .stat-card h3 {
-            font-size: 1.2rem;
-            margin-bottom: 0.5rem;
-            color: white;
-        }
-        
-        .stat-card p {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--primary);
-        }
+      .btn-new-project:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        background: linear-gradient(135deg, #45a049, #3d8b40) !important;
+      }
+
+      .btn-new-project i {
+        margin-right: 6px;
+      }
+
+      /* No Projects Styles */
+      .no-projects {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #9ca3af;
+      }
+
+      .no-projects i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #4b5563;
+      }
+
+      .no-projects p {
+        margin-bottom: 1.5rem;
+        font-size: 1.1rem;
+      }
+
+      /* Stats Section Styles */
+      .stats-container {
+        display: flex;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 10px;
+        margin-bottom: 2rem;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .stat-card {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1.5rem;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex: 1;
+      }
+
+      .stat-card i {
+        font-size: 2rem;
+        color: var(--primary);
+      }
+
+      .stat-card h3 {
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+        color: white;
+      }
+
+      .stat-card p {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--primary);
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <header class="dashboard-header">
-        <h1><i class="fas fa-code"></i> DevLog Tracker</h1>
-        <nav class="dashboard-nav">
-            <ul id="mobileNavLinks">
-                <li><a href="my-logs.html" class="nav-link" data-page="my-logs"><i class="fas fa-book"></i> My Logs</a></li>
-                <li><a href="" class="nav-link" data-page="profile"><i class="fas fa-user"></i> <span id="userNavName">Profile</span></a></li>
-                <li><a href="new-project.html" id="newProjectBtn" class="nav-link btn-new-project"><i class="fas fa-plus"></i> New Project</a></li>
-                <li><a href="#" id="signOutBtn" class="nav-link"><i class="fas fa-sign-out-alt"></i> Sign Out</a></li>
-            </ul>
-        </nav>
-        <button class="mobile-menu-button" id="mobileMenuToggle">
-            <i class="fas fa-bars"></i>
-        </button>
+      <h1><i class="fas fa-code"></i> DevLog Tracker</h1>
+      <nav class="dashboard-nav">
+        <ul id="mobileNavLinks">
+          <li>
+            <a href="my-logs.html" class="nav-link" data-page="my-logs"
+              ><i class="fas fa-book"></i> My Logs</a
+            >
+          </li>
+          <li>
+            <a href="" class="nav-link" data-page="profile"
+              ><i class="fas fa-user"></i>
+              <span id="userNavName">Profile</span></a
+            >
+          </li>
+          <li>
+            <a
+              href="new-project.html"
+              id="newProjectBtn"
+              class="nav-link btn-new-project"
+              ><i class="fas fa-plus"></i> New Project</a
+            >
+          </li>
+          <li>
+            <a href="#" id="signOutBtn" class="nav-link"
+              ><i class="fas fa-sign-out-alt"></i> Sign Out</a
+            >
+          </li>
+        </ul>
+      </nav>
+      <button class="mobile-menu-button" id="mobileMenuToggle">
+        <i class="fas fa-bars"></i>
+      </button>
     </header>
 
     <main class="dashboard-main">
-        <div class="stats-container">
-            <div class="stat-card">
-                <i class="fas fa-project-diagram"></i>
-                <div>
-                    <h3>Total Projects</h3>
-                    <p id="projectCount">0</p>
-                </div>
-            </div>
-            <div class="stat-card">
-                <i class="fas fa-clipboard-list"></i>
-                <div>
-                    <h3>Total Logs</h3>
-                    <p id="logCount">0</p>
-                </div>
-            </div>
+      <div class="stats-container">
+        <div class="stat-card">
+          <i class="fas fa-project-diagram"></i>
+          <div>
+            <h3>Total Projects</h3>
+            <p id="projectCount">0</p>
+          </div>
         </div>
-        
-        <section class="user-info">
-            <div class="user-greeting">
-                <h2>Welcome back, <span id="userName">User</span></h2>
-                <p>You are signed in as <strong id="userEmail">user@example.com</strong></p>
-            </div>
-            <!-- <div class="user-stats">
+        <div class="stat-card">
+          <i class="fas fa-clipboard-list"></i>
+          <div>
+            <h3>Total Logs</h3>
+            <p id="logCount">0</p>
+          </div>
+        </div>
+      </div>
+
+      <section class="user-info">
+        <div class="user-greeting">
+          <h2>Welcome back, <span id="userName">User</span></h2>
+          <p>
+            You are signed in as
+            <strong id="userEmail">user@example.com</strong>
+          </p>
+        </div>
+        <!-- <div class="user-stats">
                 <div class="stat-box">
                     <i class="fas fa-project-diagram"></i>
                     <div>
@@ -737,312 +776,388 @@
                         <span class="stat-label">Logs</span>
                     </div>
                 </div>
-            </div>--> 
-        </section>
+            </div>-->
+      </section>
 
-        <section class="projects-section">
-            <div class="section-header">
-                <h2 class="section-title">My Projects</h2>
-            </div>
-            <div id="projectsGrid" class="projects-grid">
-                <!-- Project cards will be dynamically inserted here -->
-                <div class="no-projects">
-                    <i class="fas fa-folder-open"></i>
-                    <p>No projects found.</p>
-                </div>
-            </div>
-        </section>
+      <section class="projects-section">
+        <div class="section-header">
+          <h2 class="section-title">My Projects</h2>
+        </div>
+        <div id="projectsGrid" class="projects-grid">
+          <!-- Project cards will be dynamically inserted here -->
+          <div class="no-projects">
+            <i class="fas fa-folder-open"></i>
+            <p>No projects found.</p>
+          </div>
+        </div>
+      </section>
     </main>
 
     <!-- Profile Settings Modal -->
-    <div id="profileModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-user-cog"></i> Profile Settings</h3>
-                <button class="close-modal" id="closeProfileModal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="editDisplayName">Display Name</label>
-                    <input type="text" id="editDisplayName" class="modal-form-input" placeholder="Enter your name">
-                </div>
-                <div class="form-group">
-                    <label for="editEmail">Email</label>
-                    <input type="email" id="editEmail" class="modal-form-input" disabled>
-                </div>
-                <div class="form-actions">
-                    <button type="button" id="saveProfileBtn" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Save Changes
-                    </button>
-                    <button type="button" id="changePasswordBtn" class="btn btn-secondary">
-                        <i class="fas fa-key"></i> Change Password
-                    </button>
-                    <button type="button" id="deleteAccountBtn" class="btn btn-danger">
-                        <i class="fas fa-trash-alt"></i> Delete Account
-                    </button>
-                </div>
-            </div>
+    <div id="profileModal" class="modal" style="display: none">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3><i class="fas fa-user-cog"></i> Profile Settings</h3>
+          <button class="close-modal" id="closeProfileModal">&times;</button>
         </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="editDisplayName">Display Name</label>
+            <input
+              type="text"
+              id="editDisplayName"
+              class="modal-form-input"
+              placeholder="Enter your name"
+            />
+          </div>
+          <div class="form-group">
+            <label for="editEmail">Email</label>
+            <input
+              type="email"
+              id="editEmail"
+              class="modal-form-input"
+              disabled
+            />
+          </div>
+          <div class="form-actions">
+            <button type="button" id="saveProfileBtn" class="btn btn-primary">
+              <i class="fas fa-save"></i> Save Changes
+            </button>
+            <button
+              type="button"
+              id="changePasswordBtn"
+              class="btn btn-secondary"
+            >
+              <i class="fas fa-key"></i> Change Password
+            </button>
+            <button type="button" id="deleteAccountBtn" class="btn btn-danger">
+              <i class="fas fa-trash-alt"></i> Delete Account
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Change Password Modal -->
-    <div id="changePasswordModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-key"></i> Change Password</h3>
-                <button class="close-modal" id="closePasswordModal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="currentPassword">Current Password</label>
-                    <input type="password" id="currentPassword" class="modal-form-input" placeholder="Enter current password">
-                </div>
-                <div class="form-group">
-                    <label for="newPassword">New Password</label>
-                    <input type="password" id="newPassword" class="modal-form-input" placeholder="Enter new password">
-                </div>
-                <div class="form-group">
-                    <label for="confirmNewPassword">Confirm New Password</label>
-                    <input type="password" id="confirmNewPassword" class="modal-form-input" placeholder="Confirm new password">
-                </div>
-                <div class="form-actions">
-                    <button type="button" id="updatePasswordBtn" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Update Password
-                    </button>
-                    <button type="button" id="cancelPasswordBtn" class="btn btn-secondary">
-                        <i class="fas fa-times"></i> Cancel
-                    </button>
-                </div>
-            </div>
+    <div id="changePasswordModal" class="modal" style="display: none">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3><i class="fas fa-key"></i> Change Password</h3>
+          <button class="close-modal" id="closePasswordModal">&times;</button>
         </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="currentPassword">Current Password</label>
+            <input
+              type="password"
+              id="currentPassword"
+              class="modal-form-input"
+              placeholder="Enter current password"
+            />
+          </div>
+          <div class="form-group">
+            <label for="newPassword">New Password</label>
+            <input
+              type="password"
+              id="newPassword"
+              class="modal-form-input"
+              placeholder="Enter new password"
+            />
+          </div>
+          <div class="form-group">
+            <label for="confirmNewPassword">Confirm New Password</label>
+            <input
+              type="password"
+              id="confirmNewPassword"
+              class="modal-form-input"
+              placeholder="Confirm new password"
+            />
+          </div>
+          <div class="form-actions">
+            <button
+              type="button"
+              id="updatePasswordBtn"
+              class="btn btn-primary"
+            >
+              <i class="fas fa-save"></i> Update Password
+            </button>
+            <button
+              type="button"
+              id="cancelPasswordBtn"
+              class="btn btn-secondary"
+            >
+              <i class="fas fa-times"></i> Cancel
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Edit Project Modal -->
     <div id="editProjectModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Edit Project</h3>
-                <span class="close-btn" id="closeEditModal">&times;</span>
-            </div>
-            <div class="modal-body">
-                <form id="editProjectForm" class="modal-form">
-                    <input type="hidden" id="editProjectId">
-                    
-                    <div class="form-group">
-                        <label for="editTitle">Project Title *</label>
-                        <input type="text" id="editTitle" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="editDescription">Description</label>
-                        <textarea id="editDescription" rows="3"></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="editStatus">Status</label>
-                        <select id="editStatus">
-                            <option value="Planning">Planning</option>
-                            <option value="In Progress" selected>In Progress</option>
-                            <option value="On Hold">On Hold</option>
-                            <option value="Completed">Completed</option>
-                            <option value="Archived">Archived</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="editTags">Tags (comma separated)</label>
-                        <input type="text" id="editTags" placeholder="e.g., web, mobile, api">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="editFeatures">Features (one per line)</label>
-                        <textarea id="editFeatures" rows="4" placeholder="Enter each feature on a new line"></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="editChallenges">Challenges & Solutions</label>
-                        <textarea id="editChallenges" rows="4" placeholder="Describe any challenges you faced and how you solved them"></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="editNotes">Notes</label>
-                        <textarea id="editNotes" rows="3" placeholder="Any additional notes about the project"></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="form-actions">
-                <button type="button" id="cancelEdit" class="btn btn-secondary">
-                    <i class="fas fa-times"></i> Cancel
-                </button>
-                <button type="submit" form="editProjectForm" id="saveChanges" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Save Changes
-                </button>
-            </div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Edit Project</h3>
+          <span class="close-btn" id="closeEditModal">&times;</span>
         </div>
+        <div class="modal-body">
+          <form id="editProjectForm" class="modal-form">
+            <input type="hidden" id="editProjectId" />
+
+            <div class="form-group">
+              <label for="editTitle">Project Title *</label>
+              <input type="text" id="editTitle" required />
+            </div>
+
+            <div class="form-group">
+              <label for="editDescription">Description</label>
+              <textarea id="editDescription" rows="3"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="editStatus">Status</label>
+              <select id="editStatus">
+                <option value="Planning">Planning</option>
+                <option value="In Progress" selected>In Progress</option>
+                <option value="On Hold">On Hold</option>
+                <option value="Completed">Completed</option>
+                <option value="Archived">Archived</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="editTags">Tags (comma separated)</label>
+              <input
+                type="text"
+                id="editTags"
+                placeholder="e.g., web, mobile, api"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="editFeatures">Features (one per line)</label>
+              <textarea
+                id="editFeatures"
+                rows="4"
+                placeholder="Enter each feature on a new line"
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="editChallenges">Challenges & Solutions</label>
+              <textarea
+                id="editChallenges"
+                rows="4"
+                placeholder="Describe any challenges you faced and how you solved them"
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="editNotes">Notes</label>
+              <textarea
+                id="editNotes"
+                rows="3"
+                placeholder="Any additional notes about the project"
+              ></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="form-actions">
+          <button type="button" id="cancelEdit" class="btn btn-secondary">
+            <i class="fas fa-times"></i> Cancel
+          </button>
+          <button
+            type="submit"
+            form="editProjectForm"
+            id="saveChanges"
+            class="btn btn-primary"
+          >
+            <i class="fas fa-save"></i> Save Changes
+          </button>
+        </div>
+      </div>
     </div>
 
     <script>
-        // Modal functionality
-        const editProjectModal = document.getElementById('editProjectModal');
-        const closeEditModal = document.getElementById('closeEditModal');
-        const cancelEditBtn = document.getElementById('cancelEdit');
-        const editProjectForm = document.getElementById('editProjectForm');
-        const saveChangesBtn = document.getElementById('saveChanges');
+      // Modal functionality
+      const editProjectModal = document.getElementById("editProjectModal");
+      const closeEditModal = document.getElementById("closeEditModal");
+      const cancelEditBtn = document.getElementById("cancelEdit");
+      const editProjectForm = document.getElementById("editProjectForm");
+      const saveChangesBtn = document.getElementById("saveChanges");
 
-        // Open modal function
-        function openEditModal(projectData) {
-            // Populate form with project data
-            document.getElementById('editProjectId').value = projectData.id;
-            document.getElementById('editTitle').value = projectData.title || '';
-            document.getElementById('editDescription').value = projectData.description || '';
-            document.getElementById('editStatus').value = projectData.status || 'In Progress';
-            document.getElementById('editTags').value = Array.isArray(projectData.tags) 
-                ? projectData.tags.join(', ') 
-                : (projectData.tags || '');
-            document.getElementById('editFeatures').value = Array.isArray(projectData.features) 
-                ? projectData.features.join('\n') 
-                : (projectData.features || '');
-            document.getElementById('editChallenges').value = projectData.challenges || '';
-            document.getElementById('editNotes').value = projectData.notes || '';
-            
-            // Show modal
-            editProjectModal.style.display = 'block';
-            document.body.style.overflow = 'hidden';
+      // Open modal function
+      function openEditModal(projectData) {
+        // Populate form with project data
+        document.getElementById("editProjectId").value = projectData.id;
+        document.getElementById("editTitle").value = projectData.title || "";
+        document.getElementById("editDescription").value =
+          projectData.description || "";
+        document.getElementById("editStatus").value =
+          projectData.status || "In Progress";
+        document.getElementById("editTags").value = Array.isArray(
+          projectData.tags
+        )
+          ? projectData.tags.join(", ")
+          : projectData.tags || "";
+        document.getElementById("editFeatures").value = Array.isArray(
+          projectData.features
+        )
+          ? projectData.features.join("\n")
+          : projectData.features || "";
+        document.getElementById("editChallenges").value =
+          projectData.challenges || "";
+        document.getElementById("editNotes").value = projectData.notes || "";
+
+        // Show modal
+        editProjectModal.style.display = "block";
+        document.body.style.overflow = "hidden";
+      }
+
+      // Close modal function
+      function closeEditModalFunc() {
+        editProjectModal.style.display = "none";
+        document.body.style.overflow = "auto";
+        editProjectForm.reset();
+      }
+
+      // Close modal when clicking on X or cancel button
+      if (closeEditModal)
+        closeEditModal.addEventListener("click", closeEditModalFunc);
+      if (cancelEditBtn)
+        cancelEditBtn.addEventListener("click", closeEditModalFunc);
+
+      // Close modal when clicking outside the modal content
+      window.addEventListener("click", (e) => {
+        if (e.target === editProjectModal) {
+          closeEditModalFunc();
         }
+      });
 
-        // Close modal function
-        function closeEditModalFunc() {
-            editProjectModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-            editProjectForm.reset();
-        }
+      // Handle form submission
+      if (editProjectForm) {
+        editProjectForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
 
-        // Close modal when clicking on X or cancel button
-        if (closeEditModal) closeEditModal.addEventListener('click', closeEditModalFunc);
-        if (cancelEditBtn) cancelEditBtn.addEventListener('click', closeEditModalFunc);
+          const projectId = document.getElementById("editProjectId").value;
+          const projectTitle = document
+            .getElementById("editTitle")
+            .value.trim();
 
-        // Close modal when clicking outside the modal content
-        window.addEventListener('click', (e) => {
-            if (e.target === editProjectModal) {
-                closeEditModalFunc();
-            }
-        });
-
-        // Handle form submission
-        if (editProjectForm) {
-            editProjectForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                
-                const projectId = document.getElementById('editProjectId').value;
-                const projectTitle = document.getElementById('editTitle').value.trim();
-                
-                if (!projectTitle) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Project title is required',
-                        confirmButtonColor: '#4a6cf7'
-                    });
-                    return;
-                }
-                
-                // Show loading state
-                saveChangesBtn.classList.add('loading');
-                
-                try {
-                    const projectData = {
-                        title: projectTitle,
-                        description: document.getElementById('editDescription').value.trim(),
-                        status: document.getElementById('editStatus').value,
-                        tags: document.getElementById('editTags').value
-                            .split(',')
-                            .map(tag => tag.trim())
-                            .filter(tag => tag.length > 0),
-                        features: document.getElementById('editFeatures').value
-                            .split('\n')
-                            .map(feature => feature.trim())
-                            .filter(feature => feature.length > 0),
-                        challenges: document.getElementById('editChallenges').value.trim(),
-                        notes: document.getElementById('editNotes').value.trim(),
-                        updatedAt: new Date()
-                    };
-                    
-                    // Update project in Firestore
-                    const projectRef = doc(db, 'projects', projectId);
-                    await updateDoc(projectRef, projectData);
-                    
-                    // Close modal and show success message
-                    closeEditModalFunc();
-                    
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success!',
-                        text: 'Project updated successfully',
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                    
-                } catch (error) {
-                    console.error('Error updating project:', error);
-                    
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Failed to update project. Please try again.',
-                        confirmButtonColor: '#4a6cf7'
-                    });
-                    
-                } finally {
-                    // Reset button state
-                    saveChangesBtn.classList.remove('loading');
-                }
+          if (!projectTitle) {
+            Swal.fire({
+              icon: "error",
+              title: "Error",
+              text: "Project title is required",
+              confirmButtonColor: "#4a6cf7"
             });
-        }
+            return;
+          }
+
+          // Show loading state
+          saveChangesBtn.classList.add("loading");
+
+          try {
+            const projectData = {
+              title: projectTitle,
+              description: document
+                .getElementById("editDescription")
+                .value.trim(),
+              status: document.getElementById("editStatus").value,
+              tags: document
+                .getElementById("editTags")
+                .value.split(",")
+                .map((tag) => tag.trim())
+                .filter((tag) => tag.length > 0),
+              features: document
+                .getElementById("editFeatures")
+                .value.split("\n")
+                .map((feature) => feature.trim())
+                .filter((feature) => feature.length > 0),
+              challenges: document
+                .getElementById("editChallenges")
+                .value.trim(),
+              notes: document.getElementById("editNotes").value.trim(),
+              updatedAt: new Date()
+            };
+
+            // Update project in Firestore
+            const projectRef = doc(db, "projects", projectId);
+            await updateDoc(projectRef, projectData);
+
+            // Close modal and show success message
+            closeEditModalFunc();
+
+            Swal.fire({
+              icon: "success",
+              title: "Success!",
+              text: "Project updated successfully",
+              timer: 2000,
+              showConfirmButton: false
+            });
+          } catch (error) {
+            console.error("Error updating project:", error);
+
+            Swal.fire({
+              icon: "error",
+              title: "Error",
+              text: "Failed to update project. Please try again.",
+              confirmButtonColor: "#4a6cf7"
+            });
+          } finally {
+            // Reset button state
+            saveChangesBtn.classList.remove("loading");
+          }
+        });
+      }
     </script>
 
     <script>
-        // In your setupProjectCardListeners function, update the edit button click handler:
-        document.querySelectorAll('.edit-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const card = e.currentTarget.closest('.project-card');
-                const projectId = card.dataset.id;
-                
-                // Get the project data from the card
-                const projectData = {
-                    id: projectId,
-                    title: card.querySelector('.project-title').textContent,
-                    description: card.querySelector('.project-description')?.textContent || '',
-                    status: card.querySelector('.project-status')?.textContent || 'In Progress',
-                    // Add other fields as needed
-                };
-                
-                // Open the edit modal with project data
-                openEditModal(projectData);
-            });
+      // In your setupProjectCardListeners function, update the edit button click handler:
+      document.querySelectorAll(".edit-btn").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const card = e.currentTarget.closest(".project-card");
+          const projectId = card.dataset.id;
+
+          // Get the project data from the card
+          const projectData = {
+            id: projectId,
+            title: card.querySelector(".project-title").textContent,
+            description:
+              card.querySelector(".project-description")?.textContent || "",
+            status:
+              card.querySelector(".project-status")?.textContent ||
+              "In Progress"
+            // Add other fields as needed
+          };
+
+          // Open the edit modal with project data
+          openEditModal(projectData);
         });
+      });
     </script>
 
     <script>
-        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-        const mobileNavLinks = document.getElementById('mobileNavLinks');
-        const menuIcon = mobileMenuToggle.querySelector('i'); // Get the icon element
+      const mobileMenuToggle = document.getElementById("mobileMenuToggle");
+      const mobileNavLinks = document.getElementById("mobileNavLinks");
+      const menuIcon = mobileMenuToggle.querySelector("i"); // Get the icon element
 
-        mobileMenuToggle.addEventListener('click', () => {
-            mobileNavLinks.classList.toggle('is-active');
-            // Toggle icon
-            if (mobileNavLinks.classList.contains('is-active')) {
-                menuIcon.classList.remove('fa-bars');
-                menuIcon.classList.add('fa-times');
-            } else {
-                menuIcon.classList.remove('fa-times');
-                menuIcon.classList.add('fa-bars');
-            }
-        });
+      mobileMenuToggle.addEventListener("click", () => {
+        mobileNavLinks.classList.toggle("is-active");
+        // Toggle icon
+        if (mobileNavLinks.classList.contains("is-active")) {
+          menuIcon.classList.remove("fa-bars");
+          menuIcon.classList.add("fa-times");
+        } else {
+          menuIcon.classList.remove("fa-times");
+          menuIcon.classList.add("fa-bars");
+        }
+      });
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script type="module" src="firebase.js"></script>
     <script type="module" src="dashboard.js"></script>
-</body>
+  </body>
 </html>
