@@ -1720,6 +1720,38 @@ async function fixMissingLastUpdated(projectId) {
     }
 }
 
+// Debug function to check project status
+window.debugProjectStatus = async (projectId) => {
+    try {
+        const projectRef = doc(db, 'projects', projectId);
+        const projectDoc = await getDoc(projectRef);
+        
+        if (projectDoc.exists()) {
+            const project = projectDoc.data();
+            const now = new Date();
+            const lastUpdated = project.lastUpdated?.toDate();
+            const createdAt = project.createdAt?.toDate();
+            const daysSinceUpdate = lastUpdated ? (now - lastUpdated) / (1000 * 60 * 60 * 24) : null;
+            
+            console.log('=== DEBUG PROJECT STATUS ===');
+            console.log('Project ID:', projectId);
+            console.log('Title:', project.title);
+            console.log('Status:', project.status);
+            console.log('Created At:', createdAt);
+            console.log('Last Updated:', lastUpdated);
+            console.log('Days since update:', daysSinceUpdate?.toFixed(1));
+            console.log('Current time:', now);
+            console.log('INACTIVITY_THRESHOLD_DAYS:', INACTIVITY_THRESHOLD_DAYS);
+            console.log('Is stale?', daysSinceUpdate >= INACTIVITY_THRESHOLD_DAYS ? 'YES' : 'NO');
+            console.log('===========================');
+        } else {
+            console.log('Project not found');
+        }
+    } catch (error) {
+        console.error('Error debugging project:', error);
+    }
+};
+
 // Update the checkForIncompleteProjects function
 async function checkForIncompleteProjects(userId) {
     console.log('1. Starting checkForIncompleteProjects for user:', userId);
@@ -1737,16 +1769,18 @@ async function checkForIncompleteProjects(userId) {
         console.log('3. Found', querySnapshot.size, 'incomplete projects');
         
         const now = new Date();
+        console.log('4. Current time:', now);
+        
         const lastReminderTime = localStorage.getItem('lastReminderTime');
         
         // Check if we've shown a reminder recently
         if (lastReminderTime) {
             const lastReminder = new Date(parseInt(lastReminderTime));
             const hoursSinceLastReminder = (now - lastReminder) / (1000 * 60 * 60);
-            console.log('Last reminder was', hoursSinceLastReminder.toFixed(1), 'hours ago');
+            console.log('5. Last reminder was', hoursSinceLastReminder.toFixed(1), 'hours ago');
             
             if (hoursSinceLastReminder < REMINDER_COOLDOWN_HOURS) {
-                console.log('Reminder shown recently, skipping');
+                console.log('6. Reminder shown recently, skipping');
                 return;
             }
         }
@@ -1764,11 +1798,14 @@ async function checkForIncompleteProjects(userId) {
             
             const daysSinceUpdate = (now - lastUpdated) / (1000 * 60 * 60 * 24);
             
-            console.log(`Project "${project.title}" last updated:`, lastUpdated, 
-                       `(${daysSinceUpdate.toFixed(1)} days ago)`);
+            console.log(`7. Project "${project.title}":`);
+            console.log('   - Status:', project.status);
+            console.log('   - Last Updated:', lastUpdated);
+            console.log('   - Days since update:', daysSinceUpdate.toFixed(1));
+            console.log('   - Is stale?', daysSinceUpdate >= INACTIVITY_THRESHOLD_DAYS ? 'YES' : 'NO');
             
             if (daysSinceUpdate >= INACTIVITY_THRESHOLD_DAYS) {
-                console.log('Adding to stale projects:', project.title);
+                console.log('8. Adding to stale projects:', project.title);
                 staleProjects.push({
                     id: doc.id,
                     title: project.title || 'Untitled Project',
@@ -1777,20 +1814,21 @@ async function checkForIncompleteProjects(userId) {
                 
                 // Fix missing lastUpdated for future checks
                 if (!project.lastUpdated) {
+                    console.log('9. Fixing missing lastUpdated for project:', project.title);
                     await fixMissingLastUpdated(doc.id);
                 }
             }
         }
         
-        console.log('4. Total stale projects:', staleProjects.length);
+        console.log('10. Total stale projects:', staleProjects.length);
         
         if (staleProjects.length > 0) {
-            console.log('5. Showing reminder for projects:', staleProjects);
+            console.log('11. Showing reminder for projects:', staleProjects);
             showIncompleteProjectsReminder(staleProjects);
             // Update last reminder time
             localStorage.setItem('lastReminderTime', now.getTime().toString());
         } else {
-            console.log('5. No stale projects found');
+            console.log('11. No stale projects found');
         }
     } catch (error) {
         console.error('Error in checkForIncompleteProjects:', error);
